@@ -1,21 +1,43 @@
-import OpenAI from "openai";
-
-const openai = new OpenAI();
 const express = require('express');
+const exphbs = require('express-handlebars');
+const path = require('path');
+
 const app = express();
-const port = 3000;
 
-async function main() {
-    const completion = await openai.chat.completions.create({
-      messages: [{ role: "system", content: "You are a helpful assistant." }],
-      model: "gpt-3.5-turbo",
-    });
-  
-    console.log(completion.choices[0]);
-  }
+// Set up Handlebars engine with custom directories
+app.engine('.hbs', exphbs({
+  extname: '.hbs',
+  layoutsDir: path.join(__dirname, 'views/layouts'), // Assuming you have a layouts directory inside 'views'
+  partialsDir: path.join(__dirname, 'views/partials'), // Correct path to your partials
+  defaultLayout: 'main', // Assuming 'main.hbs' is your main layout inside 'views/layouts'
+}));
+app.set('view engine', '.hbs');
+app.set('views', path.join(__dirname, 'views/pages')); // Correct path to your pages
 
-main();
+// Serve static files from the "public" directory
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', (req, res) => res.send('Hello World!'));
+// Parse request bodies (as JSON)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.listen(port, () => console.log(`App listening at http://localhost:${port}`));
+// Define routes
+app.get('/search', (req, res) => {
+  res.render('search'); // This will render the search.hbs template located in views/pages
+});
+
+app.get('/results', (req, res) => {
+  // Here you would handle querying the iTunes API and send the results to the results.hbs template
+  res.render('results', {
+    searchResults: [] // Replace this with real data from the iTunes API
+  });
+});
+
+// Handle 404 errors
+app.use((req, res, next) => {
+  res.status(404).send('Sorry, that page does not exist!');
+});
+
+// Set the app to listen on a port
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
