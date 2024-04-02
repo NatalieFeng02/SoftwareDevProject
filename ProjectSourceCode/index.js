@@ -30,13 +30,44 @@ app.get('/results', (req, res) => {
   console.log(req.query);
   const searchQuery = req.query.searchQuery || ''; // Get the search query from the URL parameter
 
-  const dummyData = [
+  const songData = [
     { title: 'Five Years', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
+    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
+    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
+    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
+    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
+    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
+    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
+    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
+    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
+    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
+    
   ];
+
+  const itemsPerPage = 8; // Set the number of items per page
+  const page = req.query.page || 1; // Get the current page number from the query string, defaulting to 1
+  const totalItems = songData.length; // This should be the total number of items from your data source
+
+  // Calculate the total number of pages
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  // Determine the slice of data to return based on the current page
+  const startIndex = (page - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedItems = songData.slice(startIndex, endIndex);
+
+  // Generate page numbers for pagination controls
+  const pageNumbers = [];
+  for (let i = 1; i <= totalPages; i++) {
+    pageNumbers.push({ number: i, isCurrent: i === Number(page) });
+  }
 
   res.render('results', {
     searchQuery: searchQuery, // Pass the search term to the template
-    searchResults: dummyData // Replace with real data from the iTunes API
+    searchResults: paginatedItems, // Only pass the slice of data for the current page
+    pages: pageNumbers, // Pass the array of page numbers for pagination controls
+    totalPages: totalPages, // Pass the total number of pages
+    lastPageIsCurrent: Number(page) === totalPages, // Boolean to check if the last page is the current page
   });
 });
 
@@ -68,5 +99,6 @@ app.use((req, res, next) => {
 // Set the app to listen on a port
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 
 
