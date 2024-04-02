@@ -27,9 +27,16 @@ app.get('/search', (req, res) => {
 });
 
 app.get('/results', (req, res) => {
-  // Here you would handle querying the iTunes API and send the results to the results.hbs template
+  console.log(req.query);
+  const searchQuery = req.query.searchQuery || ''; // Get the search query from the URL parameter
+
+  const dummyData = [
+    { title: 'Five Years', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
+  ];
+
   res.render('results', {
-    searchResults: [] // Replace this with real data from the iTunes API
+    searchQuery: searchQuery, // Pass the search term to the template
+    searchResults: dummyData // Replace with real data from the iTunes API
   });
 });
 
@@ -61,3 +68,5 @@ app.use((req, res, next) => {
 // Set the app to listen on a port
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+

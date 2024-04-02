@@ -4,8 +4,8 @@
   <h1 class="text-center mb-4">LyricSense</h1>
   <div class="row">
     <div class="col-md-6 offset-md-3">
-      <form id="search-form" class="input-group">
-        <input type="text" class="form-control" name="search" placeholder="Search by Artist, Song, or Album">
+      <form id="search-form" class="input-group" action="/results" method="GET">
+        <input type="text" class="form-control" name="searchQuery" class="form-control" placeholder="Search by Artist, Song, or Album">
         <div class="input-group-append">
          <button type="submit" class="btn btn-outline-secondary">
           <i class="fas fa-search"></i>
