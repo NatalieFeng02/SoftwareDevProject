@@ -1,3 +1,9 @@
+require('dotenv').config();
+
+const apiKey = process.env.OPENAI_API_KEY;
+console.log(apiKey);
+
+const OpenAI = require('openai');
 const express = require('express');
 const exphbs = require('express-handlebars');
 const path = require('path');
@@ -5,6 +11,8 @@ const path = require('path');
 const fetch = require('node-fetch');
 
 const app = express();
+
+const openai = new OpenAI(apiKey);
 
 // Set up Handlebars engine with custom directories
 app.engine('.hbs', exphbs({
@@ -150,25 +158,25 @@ app.get('/analysis', async (req, res) => {
 
   try {
     const lyricsResponse = await fetch(apiUrl);
+    if (!lyricsResponse.ok) throw new Error(`Lyrics fetch failed: ${lyricsResponse.statusText}`);
+    
     const lyricsData = await lyricsResponse.json();
 
-    if(lyricsData.lyrics) {
+    if (lyricsData.lyrics) {
       const cleanedLyrics = cleanLyrics(lyricsData.lyrics, title, artist);
-      
-      // Now send cleaned lyrics to OpenAI GPT-4 for analysis
+
       const gptApiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Replace "YOUR_API_KEY_HERE" with your actual OpenAI API key
-          'Authorization': 'Bearer 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',
+          'Authorization': `Bearer ${apiKey}`, 
         },
         body: JSON.stringify({
-          "model": "gpt-4", // or your specific model version
+          "model": "gpt-4",
           "messages": [
             {
               "role": "system",
-              "content": "Analyze the meaning of the following lyrics.  We already know the song name, the artist, and the album title."
+              "content": "Analyze the following lyrics."
             },
             {
               "role": "user",
@@ -180,12 +188,12 @@ app.get('/analysis', async (req, res) => {
         }),
       });
 
-      const analysisResponse = await gptApiResponse.json();
+      if (!gptApiResponse.ok) throw new Error(`GPT-4 API fetch failed: ${gptApiResponse.statusText}`);
       
-      // Assuming the analysis you need is in the last message's content from the response
+      const analysisResponse = await gptApiResponse.json();
+
       const analysisContent = analysisResponse.choices && analysisResponse.choices[0].message.content;
 
-      // Render the analysis in your template
       res.render('analysis', {
         title: decodeURIComponent(title),
         artist: decodeURIComponent(artist),
@@ -194,7 +202,6 @@ app.get('/analysis', async (req, res) => {
         analysis: analysisContent // This will be the GPT-4 analysis result
       });
     } else {
-      // Handle case where lyrics are not found
       res.render('analysis', {
         title: decodeURIComponent(title),
         artist: decodeURIComponent(artist),
@@ -203,12 +210,12 @@ app.get('/analysis', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Error fetching lyrics or analyzing:', error);
+    console.error('Error:', error);
     res.render('analysis', {
       title: decodeURIComponent(title),
       artist: decodeURIComponent(artist),
       album: decodeURIComponent(req.query.album),
-      lyrics: "An error occurred while fetching the lyrics or analyzing them."
+      lyrics: `An error occurred: ${error.message}`
     });
   }
 });
