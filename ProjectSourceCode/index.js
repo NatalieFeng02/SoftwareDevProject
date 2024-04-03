@@ -2,6 +2,8 @@ const express = require('express');
 const exphbs = require('express-handlebars');
 const path = require('path');
 
+const fetch = require('node-fetch');
+
 const app = express();
 
 // Set up Handlebars engine with custom directories
@@ -85,15 +87,61 @@ app.get('/login', (req, res) => {
   res.render('login');
 });
 
-app.get('/analysis', (req, res) => {
-  const { title, artist, album } = req.query;
+app.get('/analysis', async (req, res) => {
+  const { title, artist } = req.query;
 
-  res.render('analysis', {
-    title: decodeURIComponent(title),
-    artist: decodeURIComponent(artist),
-    album: decodeURIComponent(album)
-  });
+  // Construct the API URL
+  const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`;
+
+  try {
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+
+    if(data.lyrics) {
+      // Clean up the lyrics using the defined function
+      const cleanedLyrics = cleanLyrics(data.lyrics, title, artist);
+
+      res.render('analysis', {
+        title: decodeURIComponent(title),
+        artist: decodeURIComponent(artist),
+        album: decodeURIComponent(req.query.album),
+        lyrics: cleanedLyrics
+      });
+    } else {
+      // Handle the case where lyrics are not found
+      res.render('analysis', {
+        title: decodeURIComponent(title),
+        artist: decodeURIComponent(artist),
+        album: decodeURIComponent(req.query.album),
+        lyrics: "Lyrics not found."
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching lyrics:', error);
+    res.render('analysis', {
+      title: decodeURIComponent(title),
+      artist: decodeURIComponent(artist),
+      album: decodeURIComponent(req.query.album),
+      lyrics: "An error occurred while fetching the lyrics."
+    });
+  }
 });
+
+
+function cleanLyrics(lyrics, title, artist) {
+  // Define the prefix pattern to remove
+  // Adjust the pattern as needed to match the exact format
+  const pattern = `Paroles de la chanson ${title} par ${artist}`;
+  
+  // Remove the pattern from the lyrics
+  let cleanedLyrics = lyrics.replace(pattern, '').trim();
+  
+  // Further cleaning if there's a common starting pattern regardless of song/artist
+  cleanedLyrics = cleanedLyrics.replace(/^Paroles de la chanson .+ par .+/, '').trim();
+
+  return cleanedLyrics;
+}
+
 
 
 // Handle login form submission
