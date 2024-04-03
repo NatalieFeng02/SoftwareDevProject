@@ -14,25 +14,17 @@
         </tr>
       </thead>
       <tbody>
-  {{#each searchResults}}
-      <tr>
-        <!-- Make the album cover a clickable image without button styling -->
-        <td class="album-cover-cell">
-          <img src="{{this.albumCover}}" alt="{{this.title}}" class="album-cover clickable" onclick="location.href='/analysis'">
-        </td>
-        <!-- Make the title, artist, and album name buttons -->
-        <td>
-          <button class="result-button" onclick="location.href='/analysis'">{{this.title}}</button>
-        </td>
-        <td>
-          <button class="result-button" onclick="location.href='/analysis'">{{this.artist}}</button>
-        </td>
-        <td>
-          <button class="result-button" onclick="location.href='/analysis'">{{this.album}}</button>
-        </td>
-      </tr>
-    {{/each}}
-  </tbody>
+        {{#each searchResults}}
+        <tr class="clickable-row" data-title="{{title}}" data-artist="{{artist}}" data-album="{{album}}">
+          <td class="album-cover-cell">
+            <img src="{{this.albumCover}}" alt="{{this.title}}" class="album-cover">
+          </td>
+          <td><div class="result-button" data-type="title">{{this.title}}</div></td>
+          <td><div class="result-button" data-type="artist">{{this.artist}}</div></td>
+          <td><div class="result-button" data-type="album">{{this.album}}</div></td>
+        </tr>
+        {{/each}}
+      </tbody>
     </table>
   </div>
   
@@ -98,6 +90,30 @@
     /* You can add custom focus styles if needed */
   }
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.clickable-row').forEach(row => {
+      row.addEventListener('click', function() {
+        // Call handleRowClick directly with the current row context
+        handleRowClick(this);
+      });
+    });
+  });
+
+  function handleRowClick(row) {
+    const title = row.getAttribute('data-title');
+    const artist = row.getAttribute('data-artist');
+    const album = row.getAttribute('data-album');
+
+    // Construct URL with query parameters
+    const analysisUrl = `/analysis?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(album)}`;
+
+    // Navigate to the analysis page with the data
+    window.location.href = analysisUrl;
+  }
+</script>
+
 
 
 {{!-- **************TEST DATA FOR RESULTS*******************
