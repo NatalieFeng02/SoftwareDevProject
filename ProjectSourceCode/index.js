@@ -27,11 +27,74 @@ app.get('/', (req, res) => {
   res.render('home'); // This assumes that you have a 'home.hbs' file in your views/pages directory
 });
 
-app.get('/create', (req, res) => {
-  res.render('create'); // This assumes that you have a 'home.hbs' file in your views/pages directory
+app.get('/login', (req, res) => {
+  res.render('pages/login');
+});
+app.post('/login', async (req, res) => {
+  //hash the password using bcrypt library
+  const { username, password } = req.body;
+  const query = `SELECT * FROM users WHERE username = $1 LIMIT 1`;
+  const values = [username];
+  
+
+  db.one(query, values)
+    .then(async result => {
+  //console.log(result)
+  if(result)
+  {
+    const user = result;
+    const match = await bcrypt.compare(password, user.password);
+
+    if(match)
+    {
+      req.session.user = user;
+      req.session.save(() => {
+        return res.redirect('/search');
+      })
+
+    }
+    else
+    {
+
+      return res.render('pages/login', {errorMessage: 'Incorrect username or password.'});
+    }
+  }
+  else
+  {
+    return res.redirect('/create');
+  }
+}).catch(error => {
+    console.error(error);
+    return res.render('pages/login');
+});
+  
+  
+
 });
 
+app.get('/create', (req, res) => {
+  res.render('pages/create');
+});
+app.post('/create', async (req, res) => {
+  //hash the password using bcrypt library
+  const { username, password } = req.body;
 
+  const hash = await bcrypt.hash(password, 10);
+
+  // To-DO: Insert username and hashed password into the 'users' table
+  var insertUser = `INSERT INTO users(username, password) VALUES ($1, $2)`;
+
+  let response = await db.query(insertUser, [username, hash]);
+
+  if(response.err)
+  {
+    return res.redirect('/create');
+  }
+  else
+  {
+    return res.redirect('/login');
+  }
+});
 // Define routes
 app.get('/search', (req, res) => {
   res.render('search'); // This will render the search.hbs template located in views/pages
