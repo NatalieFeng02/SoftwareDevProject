@@ -14,17 +14,25 @@
         </tr>
       </thead>
       <tbody>
-        {{#each searchResults}}
-          <tr>
-            <td class="album-cover-cell">
-              <img src="{{this.albumCover}}" alt="{{this.title}}" class="album-cover">
-            </td>
-            <td>{{this.title}}</td>
-            <td>{{this.artist}}</td>
-            <td>{{this.album}}</td>
-          </tr>
-        {{/each}}
-      </tbody>
+  {{#each searchResults}}
+      <tr>
+        <!-- Make the album cover a clickable image without button styling -->
+        <td class="album-cover-cell">
+          <img src="{{this.albumCover}}" alt="{{this.title}}" class="album-cover clickable" onclick="location.href='/analysis'">
+        </td>
+        <!-- Make the title, artist, and album name buttons -->
+        <td>
+          <button class="result-button" onclick="location.href='/analysis'">{{this.title}}</button>
+        </td>
+        <td>
+          <button class="result-button" onclick="location.href='/analysis'">{{this.artist}}</button>
+        </td>
+        <td>
+          <button class="result-button" onclick="location.href='/analysis'">{{this.album}}</button>
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
     </table>
   </div>
   
@@ -64,6 +72,30 @@
 
   .table td {
     vertical-align: middle;
+  }
+
+   .clickable {
+    cursor: pointer; /* Changes cursor to indicate the item is clickable */
+  }
+  .result-button {
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 0;
+    margin: 0;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    display: block;
+    width: 100%;
+  }
+  .result-button:hover {
+    background-color: #f8f9fa; /* Light color on hover, adjust as needed */
+  }
+  /* You might want to add :focus styles if you want to keep the button-like interaction */
+  .result-button:focus {
+    outline: none; /* Removes the default focus outline */
+    /* You can add custom focus styles if needed */
   }
 </style>
 
