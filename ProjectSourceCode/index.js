@@ -28,7 +28,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  res.render('pages/login');
+  res.render('login');
 });
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
@@ -82,11 +82,11 @@ app.post('/create', async (req, res) => {
 
   if(response.err)
   {
-    return res.redirect('create');
+    return res.redirect('/create');
   }
   else
   {
-    return res.redirect('login');
+    return res.redirect('/login');
   }
 });
 // Define routes
