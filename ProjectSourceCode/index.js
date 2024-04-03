@@ -199,22 +199,20 @@ function cleanLyrics(lyrics, title, artist) {
 }
 
 
-
-// Handle login form submission
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  // Here, you would handle the authentication logic.
-  // For example, check username and password against a database.
-  // If authentication is successful, redirect to another page, otherwise render login with an error message.
-});
-
 // Handle logout action
 app.get('/logout', (req, res) => {
-  // Here, you would handle the logout logic.
-  // For example, destroying the session.
-  res.redirect('/login'); // Redirect users to the login page after logging out.
+  req.session.destroy();
+  res.render('pages/logout');
 });
 
+
+const auth = (req, res, next) => {
+  if (!req.session.user) {
+    // Default to login page.
+    return res.redirect('/login');
+  }
+  next();
+};
 // Handle 404 errors
 app.use((req, res, next) => {
   res.status(404).send('Sorry, that page does not exist!');
