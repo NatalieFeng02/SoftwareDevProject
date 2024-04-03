@@ -86,8 +86,15 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/analysis', (req, res) => {
-  res.render('analysis');
+  const { title, artist, album } = req.query;
+
+  res.render('analysis', {
+    title: decodeURIComponent(title),
+    artist: decodeURIComponent(artist),
+    album: decodeURIComponent(album)
+  });
 });
+
 
 // Handle login form submission
 app.post('/login', (req, res) => {
