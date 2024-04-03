@@ -85,6 +85,10 @@ app.get('/login', (req, res) => {
   res.render('login');
 });
 
+app.get('/analysis', (req, res) => {
+  res.render('analysis');
+});
+
 // Handle login form submission
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
@@ -108,6 +112,7 @@ app.use((req, res, next) => {
 // Set the app to listen on a port
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 
 
 
