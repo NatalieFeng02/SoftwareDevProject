@@ -1,1 +1,16 @@
-We will be using the chatGPT, Apple Music, and Spotify API's.
+We will be using the chatGPT, Lyrics.oph, iTunes (sor song names, artist names, album names, album covers) and Spotify API's (Spotify will be implemented last if time allows).
+
+Other two contributors have to be added to the github to get their points.
+
+This week our main approaches will be getting the register/login page, functionality of GPT & analysis page, databases (Daniel), search function, 
+
+someone will work on postman side of things, another person will work on the page  
+
+havent implemented API's yet, but we have tested them and will be implementing essential API's this week
+
+two main goals: having the login functionality work, and the other is to have the search page working (favorites page/profile page?)
+
+search page: searching song names based on iTunes API and once u click on a song it will get the lyrics using another API
+
+make sure user stories, project boards, etc. done by friday
+
