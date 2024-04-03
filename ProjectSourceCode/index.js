@@ -172,11 +172,11 @@ app.get('/analysis', async (req, res) => {
           'Authorization': `Bearer ${apiKey}`, 
         },
         body: JSON.stringify({
-          "model": "gpt-4",
+          "model": "gpt-3.5-turbo-0125",
           "messages": [
             {
               "role": "system",
-              "content": "Analyze the following lyrics."
+              "content": "Analyze the meaning of the following lyrics. We already know what the song, artist, and album is, so don't repeat it."
             },
             {
               "role": "user",
