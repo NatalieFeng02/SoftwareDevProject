@@ -146,26 +146,55 @@ app.get('/login', (req, res) => {
 
 app.get('/analysis', async (req, res) => {
   const { title, artist } = req.query;
-
-  // Construct the API URL
   const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`;
 
   try {
-    const response = await fetch(apiUrl);
-    const data = await response.json();
+    const lyricsResponse = await fetch(apiUrl);
+    const lyricsData = await lyricsResponse.json();
 
-    if(data.lyrics) {
-      // Clean up the lyrics using the defined function
-      const cleanedLyrics = cleanLyrics(data.lyrics, title, artist);
+    if(lyricsData.lyrics) {
+      const cleanedLyrics = cleanLyrics(lyricsData.lyrics, title, artist);
+      
+      // Now send cleaned lyrics to OpenAI GPT-4 for analysis
+      const gptApiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Replace "YOUR_API_KEY_HERE" with your actual OpenAI API key
+          'Authorization': 'Bearer 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',
+        },
+        body: JSON.stringify({
+          "model": "gpt-4", // or your specific model version
+          "messages": [
+            {
+              "role": "system",
+              "content": "Analyze the meaning of the following lyrics.  We already know the song name, the artist, and the album title."
+            },
+            {
+              "role": "user",
+              "content": cleanedLyrics
+            }
+          ],
+          "temperature": 0.5,
+          "max_tokens": 1024
+        }),
+      });
 
+      const analysisResponse = await gptApiResponse.json();
+      
+      // Assuming the analysis you need is in the last message's content from the response
+      const analysisContent = analysisResponse.choices && analysisResponse.choices[0].message.content;
+
+      // Render the analysis in your template
       res.render('analysis', {
         title: decodeURIComponent(title),
         artist: decodeURIComponent(artist),
         album: decodeURIComponent(req.query.album),
-        lyrics: cleanedLyrics
+        lyrics: cleanedLyrics,
+        analysis: analysisContent // This will be the GPT-4 analysis result
       });
     } else {
-      // Handle the case where lyrics are not found
+      // Handle case where lyrics are not found
       res.render('analysis', {
         title: decodeURIComponent(title),
         artist: decodeURIComponent(artist),
@@ -174,12 +203,12 @@ app.get('/analysis', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Error fetching lyrics:', error);
+    console.error('Error fetching lyrics or analyzing:', error);
     res.render('analysis', {
       title: decodeURIComponent(title),
       artist: decodeURIComponent(artist),
       album: decodeURIComponent(req.query.album),
-      lyrics: "An error occurred while fetching the lyrics."
+      lyrics: "An error occurred while fetching the lyrics or analyzing them."
     });
   }
 });
