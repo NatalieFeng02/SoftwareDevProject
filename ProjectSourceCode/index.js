@@ -21,6 +21,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get('/', (req, res) => {
+  res.render('home'); // This assumes that you have a 'home.hbs' file in your views/pages directory
+});
+
+app.get('/create', (req, res) => {
+  res.render('create'); // This assumes that you have a 'home.hbs' file in your views/pages directory
+});
+
+
 // Define routes
 app.get('/search', (req, res) => {
   res.render('search'); // This will render the search.hbs template located in views/pages
