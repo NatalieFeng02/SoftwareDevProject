@@ -15,14 +15,14 @@
   </div>
 
   <!-- Analysis Section -->
-  <div class="row mt-5">
+  <div class="row mt-5" id="outer-div">
     {{#each analysisResults}}
       <div class="col-12 mb-4">
         <div class="row">
-          <div class="col-md-6">
+          <div class="col-md-6" id="lyrics">
             <pre>{{{this.lyric}}}</pre>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-6" id="analysis">
             <p>{{{this.analysis}}}</p>
           </div>
         </div>
@@ -53,4 +53,43 @@
     align-items: center;
   }
   /* Add other styling as needed */
+
+
+    @font-face {
+    font-family: 'Futura';
+    src: url('../../public/fonts/futura/FUTURA45LIGHT.TTF') format('TTF'),
+        
+    font-weight: light;
+    font-style: normal;
+    }
+
+
+  #analysis p{
+    padding: 20px;
+    font-family: 'Futura', Arial, sans-serif;
+    border: 6px solid gray;
+    margin-left: 30px;
+    margin-right: 10px;
+  }
+
+  #lyrics pre {
+    text-decoration: underline;
+    text-decoration-color: lightgray;
+    text-decoration-thickness: 1px;
+    overflow: auto;
+    /*font-family: 'Courier New', Courier, monospace;*/
+    font-size: 18px;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    font-weight: 500;
+
+    white-space: pre-wrap; /* Wrap text to prevent horizontal scrolling */
+    word-break: break-word; /* Break long words if necessary to prevent horizontal scrolling */
+    overflow-x: hidden;
+    height: auto;
+    margin-right: 20px;
+    margin-left: 10px;
+  }  
+
+
 </style>
