@@ -3,6 +3,14 @@ body {
   font-family: 'Arial', sans-serif; /* Ensures consistent font family */
 }
 
+.jumbotron{
+  margin:10px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
 /* Centers the logo and gives space on top */
 h1.text-center {
   margin-top: 5vh; /* Use viewport height to ensure it's centered vertically */
