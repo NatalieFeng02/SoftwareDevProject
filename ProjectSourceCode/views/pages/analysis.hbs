@@ -11,6 +11,11 @@
     </div>
     <div class="col-md-4">
       <!-- Spotify Embed Placeholder -->
+      {{#if spotifyUri}}
+        <!-- Correct usage -->
+        <iframe src="https://open.spotify.com/embed/track/{{{spotifyUri}}}" width="600" height="352" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+      {{/if}}
+
     </div> 
   </div>
 
@@ -90,6 +95,40 @@
     margin-right: 20px;
     margin-left: 10px;
   }  
+
+    .col-md-8 {
+        width: 400px;
+    }
+
+        /* 1. When the page is 991px wide or below, make the iFrame 300px. */
+    @media (max-width: 991px) {
+    .spotify-embed-container iframe {
+        width: !important 280px;
+        height: auto; /* Adjust height as needed, or keep it proportionate */
+    }
+    }
+
+    /* 2. When it is above 991 to 1999px, make the class col-md-8 width 400px */
+    @media (min-width: 992px) and (max-width: 1999px) {
+    .col-md-8 {
+        width: 400px;
+    }
+    }
+
+    /* 3. When it is 1200px or above, make the class col-md-8 525px */
+    @media (min-width: 1200px) {
+    .col-md-8 {
+        width: 525px;
+    }
+    }
+
+    /* 4. When it is 1400px or above, make the class col-md-8 670px */
+    @media (min-width: 1400px) {
+    .col-md-8 {
+        width: 670px;
+    }
+    }
+
 
 
 </style>

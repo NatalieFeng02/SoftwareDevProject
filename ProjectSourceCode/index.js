@@ -13,6 +13,7 @@ const fetch = require('node-fetch');
 const app = express();
 
 const openai = new OpenAI(apiKey);
+const SpotifyWebApi = require('spotify-web-api-node');
 
 // Set up Handlebars engine with custom directories
 app.engine('.hbs', exphbs({
@@ -23,6 +24,7 @@ app.engine('.hbs', exphbs({
 }));
 app.set('view engine', '.hbs');
 app.set('views', path.join(__dirname, 'views/pages')); // Correct path to your pages
+
 
 // Serve static files from the "public" directory
 app.use(express.static(path.join(__dirname, 'public')));
@@ -209,11 +211,24 @@ app.get('/analysis', async (req, res) => {
       analysisResults.push(...results.sort((a, b) => a.index - b.index));
     });
 
+    let spotifyUri = '';
+      try {
+        const spotifyResponse = await spotifyApi.searchTracks(`${title} ${artist}`);
+        if (spotifyResponse.body.tracks.items.length > 0) {
+          spotifyUri = spotifyResponse.body.tracks.items[0].uri; // Get the URI of the first track
+        }
+          } catch (err) {
+            console.error('Spotify search failed:', err);
+          }
+    
+          spotifyUri = stripSpotifyUri(spotifyUri);
+    console.log(spotifyUri);
     res.render('analysis', {
       title: decodeURIComponent(title),
       artist: decodeURIComponent(artist),
       album: decodeURIComponent(req.query.album),
-      analysisResults // Pass the array of lyrics and analyses
+      analysisResults, // Pass the array of lyrics and analyses
+      spotifyUri 
     });
   } catch (error) {
     console.error('Error:', error);
@@ -226,8 +241,6 @@ app.get('/analysis', async (req, res) => {
     });
   }
 });
-
-
 
 function cleanLyrics(lyrics, title, artist) {
   // Define the prefix pattern to remove
@@ -242,6 +255,26 @@ function cleanLyrics(lyrics, title, artist) {
 
   return cleanedLyrics;
 }
+
+function stripSpotifyUri(spotifyUri) {
+  const parts = spotifyUri.split(':');
+  if (parts.length === 3 && parts[0] === 'spotify' && parts[1] === 'track') {
+    return parts[2];
+  } else {
+    throw new Error('Invalid Spotify URI');
+  }
+}
+
+const spotifyApi = new SpotifyWebApi({
+  clientId: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET
+});
+
+spotifyApi.clientCredentialsGrant().then(data => {
+  spotifyApi.setAccessToken(data.body['access_token']);
+}, err => {
+  console.log('Something went wrong when retrieving an access token', err);
+});
 
 
 // Handle logout action
