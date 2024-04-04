@@ -1,9 +1,14 @@
-{{> out_nav}}
+<nav>
+  <h1>LyricSense</h1>
+</nav>
+
+<div class="jumbotron justify-content-center align-middle">
 
 <div class="vh-100 d-flex flex-column justify-content-center align-items-center text-center" id="container">
-  <h1 class="mb-4">Create Account</h1>
+  <h5>Create an account with us to begin analyzing!</h5>
   <form method="POST" action="/create" class="w-100" style="max-width: 320px;">
     <div class="mb-3">
+      <br>
       <label for="username" class="form-label">Username</label>
       <input type="text" class="form-control" id="username" name="username">
     </div>
@@ -15,12 +20,25 @@
       <label for="password" class="form-label">Password</label>
       <input type="password" class="form-control" id="password" name="password">
     </div>
-    <button type="submit" class="btn btn-primary w-100 mb-3">Create</button>
+    <br>
+    <button type="submit" class="btn btn-primary w-100 mb-3">Create Account</button>
+    <br>
     <p>Already have an account? <a href="/login">Login</a></p>
   </form>
 </div>
+</div>
 
 <style>
-  
+  #container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Aligns vertically */
+    align-items: center; /* Aligns horizontally */
+    height: 100vh; /* Adjust the height to the viewport height */
+    margin-top: -100px; /* Adjust this value to shift the flex item up */
+  }
+  form{
+    text-align:left;
+  }
 </style>
 
