@@ -45,35 +45,36 @@ app.post('/login', async (req, res) => {
   
   db.one(query, values)
     .then(async result => {
-  //console.log(result)
-  if(result)
-  {
-    const user = result;
-    const match = await bcrypt.compare(password, user.password);
+      // At this point, a user was found, proceed with password check
+      const user = result;
+      const match = await bcrypt.compare(password, user.password);
 
-    if(match)
-    {
-      req.session.user = user;
-      req.session.save(() => {
-        return res.redirect('/search');
-      })
-
-    }
-    else
-    {
-
-      return res.render('pages/login', {errorMessage: 'Incorrect username or password.'});
-    }
-  }
-  else
-  {
-    return res.redirect('/create');
-  }
-}).catch(error => {
-    console.error(error);
-    return res.render('pages/login');
+      if (match) {
+        // Correct password
+        req.session.user = user;
+        req.session.save(() => {
+          return res.redirect('/search');
+        });
+      } else {
+        // Incorrect password
+        return res.render('/login', {errorMessage: 'Incorrect username or password.'});
+      }
+    })
+    .catch(error => {
+      // Handle both the "no user found" scenario and other potential errors
+      if (error.name === 'QueryResultError') {
+        // This error name might differ based on your DB library; adjust accordingly.
+        // User not found
+        return res.render('/login', {errorMessage: 'No account found with that username.'});
+      } 
+      else {
+        // Other errors (e.g., database connection issues)
+        console.error(error);
+        return res.render('/login', {errorMessage: 'An error occurred, please try again later.'});
+      }
+    });
 });
-});
+
 
 app.get('/create', (req, res) => {
   res.render('create');
