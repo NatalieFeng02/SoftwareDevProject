@@ -155,8 +155,8 @@ app.get('/login', (req, res) => {
 app.get('/analysis', async (req, res) => {
   const { title, artist } = req.query;
   const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`;
-  const prompt = 'This is a section of the lyrics from “${title}” by “${artist}". Give me interesting information about this section of the lyrics.  It could be analysis of the meaning, it could be historical context or context to the artist, it could be analysis of the literary devices used, it could be a story behind the lyrics… Just make it interesting. End the paragraph in a complete sentence with 150 tokens or less.  We already know what the song, artist, and album is: do not tell us what it is.'
-  console.log('Song: "${title}" by "${artist}"');
+  const prompt = `Conclude your analysis in a complete sentence in 180 tokens or less. This is a section of the lyrics from "${title}" by "${artist}". Do not tell me what song the lyrics are from or who wrote it; I already know. Give me interesting information about this section of the lyrics:  It could be analysis of the meaning, it could be historical context or context to the artist, it could be analysis of the literary devices used, it could be a story behind the lyrics... Just make it interesting.`;
+  console.log(`Song: "${title}" by "${artist}"`);
 
   try {
     const lyricsResponse = await fetch(apiUrl);
@@ -195,7 +195,7 @@ app.get('/analysis', async (req, res) => {
             }
           ],
           "temperature": 0.7,
-          "max_tokens": 140
+          "max_tokens": 180
         }),
       });
     
