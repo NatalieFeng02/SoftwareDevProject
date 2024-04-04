@@ -2,7 +2,6 @@
 {{> in_nav}}
 
 <div class="container my-5">
-  <!-- Upper Section -->
   <div class="row">
     <div class="col-md-8">
       <h2 class="font-weight-bold" style="font-size: 48px;">{{title}}</h2>
@@ -11,25 +10,29 @@
       <button onclick="location.href='/history'" class="btn btn-dark mt-3">Historical Context</button>
     </div>
     <div class="col-md-4">
-      <div class="spotify-embed">
-        <!-- Spotify Embed Goes Here -->
-      </div> 
-    </div>
+      <!-- Spotify Embed Placeholder -->
+    </div> 
   </div>
 
-  <!-- Lower Section -->
+  <!-- Analysis Section -->
   <div class="row mt-5">
-    <div class="col-md-6">
-      <pre>{{{lyrics}}}</pre> <!-- Use triple-stash for lyrics to render correctly if they contain HTML -->
-    </div>
-    <div class="col-md-6">
-      <!-- Lyrical analysis goes here -->
-      <p>{{{analysis}}}</p>
-    </div>
+    {{#each analysisResults}}
+      <div class="col-12 mb-4">
+        <div class="row">
+          <div class="col-md-6">
+            <pre>{{{this.lyric}}}</pre>
+          </div>
+          <div class="col-md-6">
+            <p>{{{this.analysis}}}</p>
+          </div>
+        </div>
+      </div>
+    {{/each}}
   </div>
 </div>
 
 {{> footer}}
+
 
 <!-- Additional styles -->
 <style>

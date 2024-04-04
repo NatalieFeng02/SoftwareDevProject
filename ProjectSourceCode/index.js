@@ -161,64 +161,69 @@ app.get('/analysis', async (req, res) => {
     if (!lyricsResponse.ok) throw new Error(`Lyrics fetch failed: ${lyricsResponse.statusText}`);
     
     const lyricsData = await lyricsResponse.json();
+    if (!lyricsData.lyrics) throw new Error("Lyrics not found.");
 
-    if (lyricsData.lyrics) {
-      const cleanedLyrics = cleanLyrics(lyricsData.lyrics, title, artist);
+    const cleanedLyrics = cleanLyrics(lyricsData.lyrics, title, artist);
+    // Split the cleaned lyrics into an array of lines/chunks
+    // Previously: const lyricsChunks = cleanedLyrics.split('\n').filter(line => line.trim() !== '');
+    // Now split by paragraphs instead of single line breaks
+    const lyricsParagraphs = cleanedLyrics.split('\n\n').filter(paragraph => paragraph.trim() !== '');
 
-      const gptApiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Initialize an array to hold the analysis results
+    const analysisResults = [];
+
+    // Use Promise.all to wait for all analyses to complete
+    await Promise.all(lyricsParagraphs.map(async (paragraph, index) => {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`, 
+          'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          "model": "gpt-3.5-turbo-0125",
+          "model": "gpt-4-0125-preview",
           "messages": [
             {
               "role": "system",
-              "content": "Analyze the meaning of the following lyrics. We already know what the song, artist, and album is, so don't repeat it."
+              "content": "Creatively discuss the following lyric paragraph and conclude your analysis with a complete sentence in 150 tokens or less. We already know the song, artist, and album name, so do not tell us where the lyric is from."
             },
             {
               "role": "user",
-              "content": cleanedLyrics
+              "content": paragraph
             }
           ],
-          "temperature": 0.5,
-          "max_tokens": 1024
+          "temperature": 0.8,
+          "max_tokens": 150
         }),
       });
+    
+      const json = await response.json();
+      const analysis = json.choices && json.choices[0].message.content;
+      // Attach the original index to each analysis result
+      return {index, lyric: paragraph, analysis};
+    })).then(results => {
+      // Sort the results based on the original index to maintain order
+      analysisResults.push(...results.sort((a, b) => a.index - b.index));
+    });
 
-      if (!gptApiResponse.ok) throw new Error(`GPT-4 API fetch failed: ${gptApiResponse.statusText}`);
-      
-      const analysisResponse = await gptApiResponse.json();
-
-      const analysisContent = analysisResponse.choices && analysisResponse.choices[0].message.content;
-
-      res.render('analysis', {
-        title: decodeURIComponent(title),
-        artist: decodeURIComponent(artist),
-        album: decodeURIComponent(req.query.album),
-        lyrics: cleanedLyrics,
-        analysis: analysisContent // This will be the GPT-4 analysis result
-      });
-    } else {
-      res.render('analysis', {
-        title: decodeURIComponent(title),
-        artist: decodeURIComponent(artist),
-        album: decodeURIComponent(req.query.album),
-        lyrics: "Lyrics not found."
-      });
-    }
+    res.render('analysis', {
+      title: decodeURIComponent(title),
+      artist: decodeURIComponent(artist),
+      album: decodeURIComponent(req.query.album),
+      analysisResults // Pass the array of lyrics and analyses
+    });
   } catch (error) {
     console.error('Error:', error);
     res.render('analysis', {
       title: decodeURIComponent(title),
       artist: decodeURIComponent(artist),
       album: decodeURIComponent(req.query.album),
-      lyrics: `An error occurred: ${error.message}`
+      error: `An error occurred: ${error.message}`,
+      analysisResults: [] // Ensure the template can handle an empty array
     });
   }
 });
+
 
 
 function cleanLyrics(lyrics, title, artist) {
