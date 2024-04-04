@@ -1,22 +1,26 @@
 {{> out_nav}}
-<div class="d-flex justify-content-center">   
-    <h1>Create Account</h1>
+
+<div class="vh-100 d-flex flex-column justify-content-center align-items-center text-center" id="container">
+  <h1 class="mb-4">Create Account</h1>
+  <form method="POST" action="/create" class="w-100" style="max-width: 320px;">
+    <div class="mb-3">
+      <label for="username" class="form-label">Username</label>
+      <input type="text" class="form-control" id="username" name="username">
+    </div>
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <input type="email" class="form-control" id="email" name="email">
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input type="password" class="form-control" id="password" name="password">
+    </div>
+    <button type="submit" class="btn btn-primary w-100 mb-3">Create</button>
+    <p>Already have an account? <a href="/login">Login</a></p>
+  </form>
 </div>
-<div class="d-flex justify-content-center">
-    <form method="POST" action="/create"> 
-        <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" class="form-control" id="username" name="username">
-        </div>
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" name="email">
-        </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" name="password">
-        </div>
-        <button type="submit" class="btn btn-primary">Create</button>
-        <p class="mb-3">Already have an account? <a href="/login">Login</a></p>
-    </form>
-</div>
+
+<style>
+  
+</style>
+
