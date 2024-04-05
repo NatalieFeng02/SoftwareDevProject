@@ -1,3 +1,4 @@
+
 require('dotenv').config();
 
 const apiKey = process.env.OPENAI_API_KEY;
@@ -77,29 +78,62 @@ app.post('/login', async (req, res) => {
     });
 });
 
+// // Route to render the create form
+// app.get("/", (req, res) => {
+//   res.redirect("/login");
+// });
+// app.get('/create', (req, res) => {
+//   res.render('create');
+// });
 
-app.get('/create', (req, res) => {
-  res.render('create');
+// // Route to handle form submission and create a new user
+// app.post('/create', async (req, res) => {
+//   const { username, email, password } = req.body;
+
+//   try {
+//     // Hash the password
+//     const hash = await bcrypt.hash(password, 10);
+
+//     // Insert user into the database
+//     const query = 'INSERT INTO users(username, email, password) VALUES ($1, $2, $3)';
+//     await pool.query(query, [username, email, hash]);
+
+//     // Redirect to login page upon successful creation
+//     res.redirect('/login');
+
+//   } catch (error) {
+//     console.error(error);
+//     res.redirect('/create');
+//   }
+// });
+
+// app.get("/", (req, res) => {
+//   res.redirect("/login");
+// });
+app.get("/create", (req, res) => {
+  res.render("create");
+});
+app.post("/create", async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    const existingUser = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [username]);
+    if (existingUser) {
+      return res.render("create", {
+        message: "Username already exists. Please choose a different username.",
+      });
+    }
+    const hash = await bcrypt.hash(password, 10);
+    await db.none("INSERT INTO users(username, email, password) VALUES($1, $2, $3)", [username, email, hash]);
+    res.redirect("/login");
+  } catch (error) {
+    console.error("Error during registration:", error);
+    res.render("create", {
+      message: "Registration failed. Please try again.",
+    });
+  }
 });
 
-app.post('/create', async (req, res) => {
-  const { username, password } = req.body;
 
-  const hash = await bcrypt.hash(password, 10);
-
-  var insertUser = `INSERT INTO users(username, password) VALUES ($1, $2)`;
-
-  let response = await db.query(insertUser, [username, hash]);
-
-  if(response.err)
-  {
-    return res.redirect('/create');
-  }
-  else
-  {
-    return res.redirect('/login');
-  }
-});
 // Define routes
 app.get('/search', (req, res) => {
   res.render('search'); // This will render the search.hbs template located in views/pages

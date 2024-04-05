@@ -6,11 +6,16 @@ DROP TABLE IF EXISTS lyrics;
 DROP TABLE IF EXISTS songs;
 DROP TABLE IF EXISTS users;
 
+-- CREATE TABLE users (
+--   id SERIAL PRIMARY KEY,
+--   username VARCHAR(50) UNIQUE NOT NULL,
+--   email VARCHAR(50) NOT NULL,
+--   password TEXT NOT NULL -- Text instead of varchar for hashing key, unknown hash size.
+-- );
 CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  username VARCHAR(50) UNIQUE NOT NULL,
-  password TEXT NOT NULL, -- Text instead of varchar for hashing key, unknown hash size.
-  email VARCHAR(50) NOT NULL
+    username VARCHAR(50) PRIMARY KEY,
+    email VARCHAR(50)
+    password CHAR(60) NOT NULL
 );
 
 -- Are we planning to store the album covers or do those only appear when searching?
