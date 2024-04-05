@@ -2,14 +2,14 @@
 {{> in_nav}}
 
 <div class="container my-5">
-  <div class="row">
-    <div class="col-md-8">
+  <div class="row" id="top">
+    <div class="col-md-8" id="title">
       <h2 class="font-weight-bold" style="font-size: 48px;">{{title}}</h2>
       <p class="font-italic" style="font-size: 24px;">{{artist}}</p>
       <p style="font-size: 18px;">{{album}}</p>
-      <button onclick="location.href='/history'" class="btn btn-dark mt-3">Historical Context</button>
+      <button onclick="location.href='/background'" class="btn btn-dark mt-3">Background</button>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-4" id="spotify-embed">
       <!-- Spotify Embed Placeholder -->
       {{#if spotifyUri}}
         <!-- Correct usage -->
@@ -100,35 +100,51 @@
         width: 400px;
     }
 
-        /* 1. When the page is 991px wide or below, make the iFrame 300px. */
-    @media (max-width: 991px) {
-    .spotify-embed-container iframe {
-        width: !important 280px;
-        height: auto; /* Adjust height as needed, or keep it proportionate */
-    }
+    #top {
+    display: flex;
+    flex-wrap: wrap; /* Allows items to wrap if the viewport is too narrow */   
     }
 
-    /* 2. When it is above 991 to 1999px, make the class col-md-8 width 400px */
-    @media (min-width: 992px) and (max-width: 1999px) {
-    .col-md-8 {
-        width: 400px;
-    }
+    #title, #spotify-embed {
+        flex: 1; /* Allows both children to grow and occupy available space */
     }
 
-    /* 3. When it is 1200px or above, make the class col-md-8 525px */
-    @media (min-width: 1200px) {
-    .col-md-8 {
-        width: 525px;
-    }
+    /* Specific styles for Spotify embed to control its maximum size */
+    #spotify-embed iframe {
+        max-width: 100%; /* Ensures the iframe is responsive and does not overflow its container */
+        height: 352px; /* Adjust height as needed, or keep it proportionate */
     }
 
-    /* 4. When it is 1400px or above, make the class col-md-8 670px */
-    @media (min-width: 1400px) {
-    .col-md-8 {
-        width: 670px;
+    /* Optional: Add some padding or margin around the iframe for spacing */
+    #spotify-embed iframe {
+        margin: 0 10px;
     }
+
+    #title {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%; /* Set a specific height or make it relative to its parent */
+        text-align: center;
+        height: 352px;
     }
 
 
 
 </style>
+
+<script>
+window.addEventListener('load', () => {
+  const title = sessionStorage.getItem('selectedTitle');
+  const artist = sessionStorage.getItem('selectedArtist');
+  const album = sessionStorage.getItem('selectedAlbum');
+
+  if (title && artist && album) {
+    document.querySelector('.your-title-class').innerText = title;
+    document.querySelector('.your-artist-class').innerText = artist;
+    document.querySelector('.your-album-class').innerText = album;
+    // If you have a button or link to navigate to /background, it's already there
+  }
+});
+</script>
