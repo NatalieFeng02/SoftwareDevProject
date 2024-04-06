@@ -4,6 +4,101 @@
   <h1 class="display-4 mt-5">LyricSense</h1>
   <p class="lead">A tool that uses artificial intelligence to help you delve deep into the meaning and history of song lyrics.</p>
   <a href="/create" class="btn btn-primary btn-lg mt-4">Get Started</a>
+  
+  <!-- Container for the album covers displayed in a 3x3 grid -->
+  <div class="album-container mt-5"></div>
 </div>
 
 {{> footer}}
+
+<style>
+  .album-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Creates a 3-column grid */
+    grid-gap: 10px; /* Adjust the gap as needed */
+    max-width: 600px; /* Adjust based on your preference */
+    margin: auto; /* Center the grid */
+  }
+
+  .album-cover {
+    transition: opacity 2s ease-in-out; /* Smooth transition for the opacity */
+  }
+
+  .album-cover img {
+    max-width: 100%;
+    height: auto;
+    display: block; /* Remove extra space under the image */
+  }
+</style>
+
+<script>
+// Define all the functions needed
+
+// Function to fetch and display albums initially
+async function fetchAndDisplayAlbums() {
+  try {
+    const response = await fetch('/api/album-covers');
+    const albums = await response.json();
+    displayAlbums(albums); // Display the fetched albums
+    rotateAlbums(albums); // Start the rotation logic
+  } catch (error) {
+    console.error('Failed to fetch album covers:', error);
+  }
+}
+
+// Function to display album covers in the container
+function displayAlbums(albums) {
+  const container = document.querySelector('.album-container');
+  container.innerHTML = ''; // Clear existing content
+
+  // Limit the number of displayed albums to 9 (for a 3x3 grid)
+  const limitedAlbums = albums.slice(0, 9);
+
+  limitedAlbums.forEach(album => {
+    const albumElement = document.createElement('div');
+    albumElement.className = 'album-cover'; // All covers are visible
+    albumElement.innerHTML = `
+      <img src="${album.imageUrl}" alt="${album.name}" style="max-width:100%; height:auto;">
+    `;
+    container.appendChild(albumElement);
+  });
+}
+
+
+// Function to rotate one album cover at a time
+function rotateAlbums(albums) {
+  const limitedAlbums = albums.slice(0, 9); // Work with only the first 9 albums
+  let previousIndex = 0; // Store the previous index
+  
+  setInterval(async () => {
+    let nextIndex;
+    do {
+      nextIndex = Math.floor(Math.random() * limitedAlbums.length);
+    } while (nextIndex === previousIndex); // Ensure we don't select the same album to change
+    
+    // Fetch a new album cover and update the src
+    const newAlbums = await fetchAlbumCovers();
+    const newAlbum = newAlbums[Math.floor(Math.random() * newAlbums.length)];
+
+    // Update the album cover with a new one
+    const albumElements = document.querySelectorAll('.album-cover img');
+    if (albumElements[nextIndex]) {
+      albumElements[nextIndex].src = newAlbum.imageUrl;
+      albumElements[nextIndex].alt = newAlbum.name;
+    }
+    
+    previousIndex = nextIndex; // Update the previous index
+  }, 3000); // Change a random cover every 3 seconds
+}
+
+
+// Fetches new album covers, you might need to adjust depending on your actual implementation
+async function fetchAlbumCovers() {
+  const response = await fetch('/api/album-covers');
+  const newAlbums = await response.json();
+  return newAlbums;
+}
+
+// Start the process after the DOM has fully loaded
+document.addEventListener('DOMContentLoaded', fetchAndDisplayAlbums);
+</script>

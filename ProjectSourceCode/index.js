@@ -11,6 +11,8 @@ const path = require('path');
 
 const fetch = require('node-fetch');
 
+const queryString = require('querystring');
+
 const app = express();
 
 const openai = new OpenAI(apiKey);
@@ -36,6 +38,51 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
   res.render('home'); // This assumes that you have a 'home.hbs' file in your views/pages directory
+});
+
+async function fetchAlbumCovers() {
+  // Step 1: Get an Access Token
+  const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: 'Basic ' + Buffer.from(process.env.SPOTIFY_CLIENT_ID + ':' + process.env.SPOTIFY_CLIENT_SECRET).toString('base64'),
+    },
+    body: queryString.stringify({ grant_type: 'client_credentials' }),
+  });
+
+  const tokenData = await tokenResponse.json();
+  const accessToken = tokenData.access_token;
+
+  // Step 2: Fetch Playlist Tracks
+  const playlistId = '4KmcBdDIbHeO0alvCfk2TC';
+  const albumsResponse = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  const albumsData = await albumsResponse.json();
+
+  // Step 3: Extract Album Covers
+  // Note: This assumes the playlist's tracks have associated albums with images.
+  // Filter out tracks without images or albums to prevent errors.
+  const albumCovers = albumsData.items.filter(item => item.track && item.track.album && item.track.album.images.length > 0).map(item => ({
+    imageUrl: item.track.album.images[0].url, // Get the first image (usually the largest)
+    name: item.track.album.name,
+    artist: item.track.album.artists.map(artist => artist.name).join(', '),
+  }));
+
+  return albumCovers;
+}
+
+app.get('/api/album-covers', async (req, res) => {
+  try {
+    const albumCovers = await fetchAlbumCovers();
+    res.json(albumCovers);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching album covers" });
+  }
 });
 
 app.get('/login', (req, res) => {
