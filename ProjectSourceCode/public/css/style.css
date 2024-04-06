@@ -56,6 +56,10 @@ h1.text-center {
   vertical-align: middle;
 }
 
+main {
+  padding-bottom: 70px; /* Adds 70px padding to the bottom of <main> */
+}
+
 /* Styles for the footer */
 footer {
   position: fixed;

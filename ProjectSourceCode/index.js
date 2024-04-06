@@ -139,41 +139,40 @@ app.get('/search', (req, res) => {
   res.render('search'); // This will render the search.hbs template located in views/pages
 });
 
-app.get('/results', (req, res) => {
+app.get('/results', async (req, res) => {
   console.log(req.query);
   const searchQuery = req.query.searchQuery || ''; // Get the search query from the URL parameter
 
-  const songData = [
-    { title: 'Five Years', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
-    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
-    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
-    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
-    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
-    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
-    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
-    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
-    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
-    { title: 'Soul Love', artist: 'David Bowie', album: 'Ziggy Stardust and the Spiders From Mars', albumCover: '/img/ZiggyStardust.png' },
+  try {
+    const apiUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(searchQuery)}&entity=song&limit=32`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
     
-  ];
+    const songData = data.results.map(song => ({
+      title: song.trackName,
+      artist: song.artistName,
+      album: song.collectionName,
+      albumCover: song.artworkUrl100.replace('100x100', '600x600') // Enhance album cover resolution
+    }));
 
-  const itemsPerPage = 8; // Set the number of items per page
-  const page = req.query.page || 1; // Get the current page number from the query string, defaulting to 1
-  const totalItems = songData.length; // This should be the total number of items from your data source
 
-  // Calculate the total number of pages
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const itemsPerPage = 8; // Set the number of items per page
+    const page = req.query.page || 1; // Get the current page number from the query string, defaulting to 1
+    const totalItems = songData.length; // This should be the total number of items from your data source
+  
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+  
+    // Determine the slice of data to return based on the current page
+    const startIndex = (Number(page) - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedItems = songData.slice(startIndex, endIndex);
+  
 
-  // Determine the slice of data to return based on the current page
-  const startIndex = (page - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedItems = songData.slice(startIndex, endIndex);
-
-  // Generate page numbers for pagination controls
-  const pageNumbers = [];
-  for (let i = 1; i <= totalPages; i++) {
-    pageNumbers.push({ number: i, isCurrent: i === Number(page) });
-  }
+    const pageNumbers = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pageNumbers.push({ number: i, isCurrent: i === Number(page) });
+    }
 
   res.render('results', {
     searchQuery: searchQuery, // Pass the search term to the template
@@ -182,6 +181,10 @@ app.get('/results', (req, res) => {
     totalPages: totalPages, // Pass the total number of pages
     lastPageIsCurrent: Number(page) === totalPages, // Boolean to check if the last page is the current page
   });
+  } catch (error) {
+    console.error('Error fetching data from iTunes API:', error);
+    res.status(500).send('Error fetching data from iTunes API');
+  }
 });
 
 // Display the login page
