@@ -272,12 +272,15 @@ async function getSpotifyAccessToken() {
 function cleanTitle(title) {
   // Define a list of patterns that you want to remove from the title
   const patternsToRemove = [
-    /\s-\s\d{4}\sRemaster$/i, // Matches " - YYYY Remaster"
-    /\s-\s\d{4}\sVersion$/i,  // Matches " - YYYY Version"
-    /\s-\s\d{4}\sReissue$/i,  // Matches " - YYYY Reissue"
-    /\s-\sRemastered$/i,      // Matches " - Remastered"
-    /\s-\sLive$/i,            // Matches " - Live"
-    // Add more patterns as needed
+    /\s-\s\d{4}\sRemaster$/i,  // Matches " - YYYY Remaster"
+    /\s-\s\d{4}\sVersion$/i,   // Matches " - YYYY Version"
+    /\s-\s\d{4}\sReissue$/i,   // Matches " - YYYY Reissue"
+    /\s-\sRemastered$/i,       // Matches " - Remastered"
+    /\s-\sLive$/i,             // Matches " - Live"
+    /\s-\sIncluding\s".+"$/i,  // Matches " - Including "Something""
+    /\s-\s\d{4}\s.*$/i,        // Matches " - YYYY" followed by anything (use with caution)
+    /\s\(feat\.\s[^)]+\)/i,    // Matches " (feat. Artist Name)"
+    /\s\([^)]+\)/i, 
   ];
 
   // Remove each pattern from the title
@@ -288,10 +291,22 @@ function cleanTitle(title) {
   return title.trim();
 }
 
+function cleanArtist(artist) {
+  // Define a pattern to detect multiple artists
+  const multipleArtistsPattern = /,|feat\.?|&/i;
+
+  // Split the artist string by the pattern and trim white spaces
+  const artists = artist.split(multipleArtistsPattern).map(s => s.trim());
+
+  // Return the first artist only
+  return artists[0];
+}
+
 app.get('/analysis', async (req, res) => {
   const { title, artist } = req.query;
   const cleanedTitle = cleanTitle(decodeURIComponent(title));
-  const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(cleanedTitle)}`;
+  const cleanedArtist = cleanArtist(decodeURIComponent(artist));
+  const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(cleanedArtist)}/${encodeURIComponent(cleanedTitle)}`;
   const prompt = `Conclude your analysis in a complete sentence in 180 tokens or less. This is a section of the lyrics from "${title}" by "${artist}". Do not tell me what song the lyrics are from or who wrote it; I already know. Give me interesting information about this section of the lyrics:  It could be analysis of the meaning, it could be historical context or context to the artist, it could be analysis of the literary devices used, it could be a story behind the lyrics... Just make it interesting.`;
   console.log(`Song: "${title}" by "${artist}"`);
 
