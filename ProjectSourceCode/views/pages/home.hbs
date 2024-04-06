@@ -20,76 +20,123 @@
     margin: auto; /* Center the grid */
   }
 
-  .album-cover {
-    transition: opacity 2s ease-in-out; /* Smooth transition for the opacity */
-  }
+.album-cover {
+  transition: opacity 2s ease-in-out; /* Smooth transition for the opacity */
+  background: #000; /* Or any color that matches your design */
+  display: inline-block; /* Or flex, depending on your layout */
+}
 
-  .album-cover img {
-    max-width: 100%;
-    height: auto;
-    display: block; /* Remove extra space under the image */
-  }
+.album-cover img {
+  max-width: 100%;
+  height: auto;
+  display: block; /* Remove extra space under the image */
+}
+
 </style>
 
 <script>
+let displayedAlbums = []; // Global variable to store displayed albums
+
 // Define all the functions needed
+
+// Function to shuffle an array (Fisher-Yates shuffle)
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+    }
+}
 
 // Function to fetch and display albums initially
 async function fetchAndDisplayAlbums() {
   try {
     const response = await fetch('/api/album-covers');
     const albums = await response.json();
-    displayAlbums(albums); // Display the fetched albums
-    rotateAlbums(albums); // Start the rotation logic
+    shuffleArray(albums); // Shuffle the albums
+    displayedAlbums = albums.slice(0, 9); // Now storing the first 9 shuffled albums globally
+    displayAlbums(displayedAlbums); // Display these albums
+    rotateAlbums(); // Safe to call here, as displayedAlbums is now populated
   } catch (error) {
     console.error('Failed to fetch album covers:', error);
   }
 }
+
+
 
 // Function to display album covers in the container
 function displayAlbums(albums) {
   const container = document.querySelector('.album-container');
   container.innerHTML = ''; // Clear existing content
 
-  // Limit the number of displayed albums to 9 (for a 3x3 grid)
-  const limitedAlbums = albums.slice(0, 9);
-
-  limitedAlbums.forEach(album => {
-    const albumElement = document.createElement('div');
-    albumElement.className = 'album-cover'; // All covers are visible
-    albumElement.innerHTML = `
-      <img src="${album.imageUrl}" alt="${album.name}" style="max-width:100%; height:auto;">
-    `;
-    container.appendChild(albumElement);
+  albums.slice(0, 9).forEach(album => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'album-cover'; // Apply class to the wrapper for the fade effect
+    wrapper.innerHTML = `<img src="${album.imageUrl}" alt="${album.name}" style="max-width:100%; height:auto;">`;
+    container.appendChild(wrapper);
   });
 }
 
 
-// Function to rotate one album cover at a time
-function rotateAlbums(albums) {
-  const limitedAlbums = albums.slice(0, 9); // Work with only the first 9 albums
-  let previousIndex = 0; // Store the previous index
-  
-  setInterval(async () => {
-    let nextIndex;
-    do {
-      nextIndex = Math.floor(Math.random() * limitedAlbums.length);
-    } while (nextIndex === previousIndex); // Ensure we don't select the same album to change
-    
-    // Fetch a new album cover and update the src
-    const newAlbums = await fetchAlbumCovers();
-    const newAlbum = newAlbums[Math.floor(Math.random() * newAlbums.length)];
 
-    // Update the album cover with a new one
-    const albumElements = document.querySelectorAll('.album-cover img');
-    if (albumElements[nextIndex]) {
-      albumElements[nextIndex].src = newAlbum.imageUrl;
-      albumElements[nextIndex].alt = newAlbum.name;
-    }
-    
-    previousIndex = nextIndex; // Update the previous index
-  }, 3000); // Change a random cover every 3 seconds
+// Function to rotate one album cover at a time
+// Assuming displayedAlbums is a globally available array of album objects
+
+function rotateAlbums() {
+    let currentIndex = -1; // Initialize outside valid range to ensure the first selected index is 0
+
+    // Function to handle the transition of album covers
+    const transitionAlbumCover = () => {
+        let nextIndex;
+        do {
+            nextIndex = Math.floor(Math.random() * displayedAlbums.length);
+        } while (nextIndex === currentIndex); // Avoid repeating the same album
+
+        currentIndex = nextIndex; // Update currentIndex for the next iteration
+
+        fetchAlbumCovers().then(newAlbums => {
+            shuffleArray(newAlbums); // Ensure randomness
+
+            const newAlbum = newAlbums.find(album => !displayedAlbums.some(displayedAlbum => displayedAlbum.imageUrl === album.imageUrl));
+            if (newAlbum) {
+                const albumElement = document.querySelectorAll('.album-cover')[nextIndex];
+                const imgElement = albumElement.querySelector('img');
+                if (imgElement) {
+                    // Fade out the current image
+                    albumElement.style.opacity = 0;
+
+                    setTimeout(() => {
+                        const img = new Image();
+                        img.onload = () => {
+                            imgElement.src = img.src;
+                            imgElement.alt = newAlbum.name || 'Classic Album';
+                            setTimeout(() => {
+                                albumElement.style.opacity = 1;
+                            }, 100); // Short delay to ensure smooth transition
+                        };
+                        img.src = newAlbum.imageUrl; // Start loading the new image
+
+                        displayedAlbums[nextIndex] = newAlbum;
+                    }, 2000); // Wait for the fade-out to complete
+                }
+            }
+        }).catch(error => {
+            console.error('Failed to rotate album covers:', error);
+        });
+    };
+
+    // Immediately execute transitionAlbumCover for the first transition
+    transitionAlbumCover();
+
+    // Then set up the interval for subsequent transitions
+    setInterval(() => {
+        transitionAlbumCover();
+    }, 5000); // Including transition time and additional waiting time
 }
+
+
+
+
+
 
 
 // Fetches new album covers, you might need to adjust depending on your actual implementation
