@@ -41,6 +41,11 @@ app.get('/', (req, res) => {
 app.get('/login', (req, res) => {
   res.render('login');
 });
+
+app.get('/search', (req, res) => {
+  res.render('search');
+});
+
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   const query = `SELECT * FROM users WHERE username = $1 LIMIT 1`;
@@ -135,6 +140,7 @@ app.post("/create", async (req, res) => {
 
 
 // Define routes
+/*
 app.get('/search', (req, res) => {
   res.render('search'); // This will render the search.hbs template located in views/pages
 });
@@ -191,10 +197,101 @@ app.get('/results', async (req, res) => {
 app.get('/login', (req, res) => {
   res.render('login');
 });
+*/
+
+app.get('/results', async (req, res) => {
+  console.log(req.query);
+  const searchQuery = req.query.searchQuery || ''; // Get the search query from the URL parameter
+
+  try {
+    const accessToken = await getSpotifyAccessToken(); // Fetch a new access token
+    const apiUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=32`;
+    
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+    const data = await response.json();
+
+    const songData = data.tracks.items.map(track => ({
+      title: track.name,
+      artist: track.artists.map(artist => artist.name).join(', '),
+      album: track.album.name,
+      albumCover: track.album.images.reduce((largest, image) => {
+        if (image.height > largest.height) return image;
+        return largest;
+      }, track.album.images[0]).url
+    })).sort((a, b) => b.popularity - a.popularity);
+
+    const itemsPerPage = 8;
+    const page = req.query.page || 1;
+    const totalItems = songData.length;
+  
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (Number(page) - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedItems = songData.slice(startIndex, endIndex);
+  
+    const pageNumbers = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pageNumbers.push({ number: i, isCurrent: i === Number(page) });
+    }
+
+    res.render('results', {
+      searchQuery: searchQuery,
+      searchResults: paginatedItems,
+      pages: pageNumbers,
+      totalPages: totalPages,
+      lastPageIsCurrent: Number(page) === totalPages,
+    });
+  } catch (error) {
+    console.error('Error fetching data from Spotify API:', error);
+    res.status(500).send('Error fetching data from Spotify API');
+  }
+});
+
+async function getSpotifyAccessToken() {
+  const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
+  const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+  
+  const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Basic ' + Buffer.from(CLIENT_ID + ':' + CLIENT_SECRET).toString('base64'),
+    },
+    body: 'grant_type=client_credentials',
+  });
+
+  const data = await response.json();
+  return data.access_token;
+}
+
+function cleanTitle(title) {
+  // Define a list of patterns that you want to remove from the title
+  const patternsToRemove = [
+    /\s-\s\d{4}\sRemaster$/i, // Matches " - YYYY Remaster"
+    /\s-\s\d{4}\sVersion$/i,  // Matches " - YYYY Version"
+    /\s-\s\d{4}\sReissue$/i,  // Matches " - YYYY Reissue"
+    /\s-\sRemastered$/i,      // Matches " - Remastered"
+    /\s-\sLive$/i,            // Matches " - Live"
+    // Add more patterns as needed
+  ];
+
+  // Remove each pattern from the title
+  patternsToRemove.forEach(pattern => {
+    title = title.replace(pattern, '');
+  });
+
+  return title.trim();
+}
 
 app.get('/analysis', async (req, res) => {
   const { title, artist } = req.query;
-  const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`;
+  const cleanedTitle = cleanTitle(decodeURIComponent(title));
+  const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(cleanedTitle)}`;
   const prompt = `Conclude your analysis in a complete sentence in 180 tokens or less. This is a section of the lyrics from "${title}" by "${artist}". Do not tell me what song the lyrics are from or who wrote it; I already know. Give me interesting information about this section of the lyrics:  It could be analysis of the meaning, it could be historical context or context to the artist, it could be analysis of the literary devices used, it could be a story behind the lyrics... Just make it interesting.`;
   console.log(`Song: "${title}" by "${artist}"`);
 
