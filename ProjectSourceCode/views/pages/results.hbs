@@ -31,16 +31,23 @@
   <nav aria-label="Search results pages" class="mt-4">
     <ul class="pagination justify-content-center">
       {{#each pages}}
+      
         <li class="page-item{{#if this.isCurrent}} active{{/if}}">
-          <a class="page-link" href="?page={{this.number}}">{{this.number}}</a>
+          <a class="page-link" href="?searchQuery={{../searchQuery}}&page={{this.number}}">{{this.number}}</a>
         </li>
       {{/each}}
-      {{#unless lastPageIsCurrent}}
+
+
+      {{!-- THIS LOGIC BELOW IS NOT CORRECT, WE NEED MUCH MORE COMPLICATED LOGIC TO ADD ELIPSES --}}
+      
+      
+      {{!-- {{#unless lastPageIsCurrent}}
         <li class="page-item"><span class="page-link">...</span></li>
         <li class="page-item">
-          <a class="page-link" href="?page={{totalPages}}">{{totalPages}}</a>
+          <a class="page-link" href="?searchQuery={{searchQuery}}&page={{totalPages}}">{{totalPages}}</a>
         </li>
-      {{/unless}}
+      {{/unless}} --}}
+      
     </ul>
   </nav>
 </div>
