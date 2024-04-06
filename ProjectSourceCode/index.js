@@ -204,7 +204,7 @@ app.get('/results', async (req, res) => {
   const searchQuery = req.query.searchQuery || ''; // Get the search query from the URL parameter
 
   try {
-    const accessToken = await getSpotifyAccessToken(); // Fetch a new access token
+    const accessToken = await getSpotifyAccessToken(); // Fetch a new access token using the provided function
     const apiUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=32`;
     
     const response = await fetch(apiUrl, {
@@ -215,7 +215,7 @@ app.get('/results', async (req, res) => {
     });
     const data = await response.json();
 
-    const songData = data.tracks.items.map(track => ({
+    let songData = data.tracks.items.map(track => ({
       title: track.name,
       artist: track.artists.map(artist => artist.name).join(', '),
       album: track.album.name,
@@ -223,16 +223,30 @@ app.get('/results', async (req, res) => {
         if (image.height > largest.height) return image;
         return largest;
       }, track.album.images[0]).url
-    })).sort((a, b) => b.popularity - a.popularity);
+    }));
+
+    // Apply cleanTitle and cleanArtist functions before checking lyrics availability
+    const filteredSongData = await Promise.all(songData.map(async song => {
+      const cleanedTitle = cleanTitle(song.title);
+      const cleanedArtist = cleanArtist(song.artist);
+      const lyricsResponse = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(cleanedArtist)}/${encodeURIComponent(cleanedTitle)}`);
+      if (lyricsResponse.ok) {
+        return { ...song, lyricsAvailable: true };
+      }
+      return null;
+    }));
+
+    // Remove tracks where lyrics are not available (null entries)
+    const songsWithLyrics = filteredSongData.filter(song => song !== null);
 
     const itemsPerPage = 8;
     const page = req.query.page || 1;
-    const totalItems = songData.length;
+    const totalItems = songsWithLyrics.length;
   
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     const startIndex = (Number(page) - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const paginatedItems = songData.slice(startIndex, endIndex);
+    const paginatedItems = songsWithLyrics.slice(startIndex, endIndex);
   
     const pageNumbers = [];
     for (let i = 1; i <= totalPages; i++) {
@@ -247,8 +261,8 @@ app.get('/results', async (req, res) => {
       lastPageIsCurrent: Number(page) === totalPages,
     });
   } catch (error) {
-    console.error('Error fetching data from Spotify API:', error);
-    res.status(500).send('Error fetching data from Spotify API');
+    console.error('Error fetching data:', error);
+    res.status(500).send('Error fetching data');
   }
 });
 
@@ -306,7 +320,7 @@ app.get('/analysis', async (req, res) => {
   const { title, artist } = req.query;
   const cleanedTitle = cleanTitle(decodeURIComponent(title));
   const cleanedArtist = cleanArtist(decodeURIComponent(artist));
-  const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(cleanedArtist)}/${encodeURIComponent(cleanedTitle)}`;
+ const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(cleanedArtist)}/${encodeURIComponent(cleanedTitle)}`;
   const prompt = `Conclude your analysis in a complete sentence in 180 tokens or less. This is a section of the lyrics from "${title}" by "${artist}". Do not tell me what song the lyrics are from or who wrote it; I already know. Give me interesting information about this section of the lyrics:  It could be analysis of the meaning, it could be historical context or context to the artist, it could be analysis of the literary devices used, it could be a story behind the lyrics... Just make it interesting.`;
   console.log(`Song: "${title}" by "${artist}"`);
 
