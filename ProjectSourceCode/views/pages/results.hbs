@@ -1,5 +1,8 @@
-
+<nav>
+  <h1>LyricSense</h1>
+</nav>
 {{> header}}
+
 
 <div class="container mt-5">
   <h2 class="text-center mb-4">Results for '{{searchQuery}}'</h2>
@@ -29,7 +32,7 @@
   </div>
   
   <nav aria-label="Search results pages" class="mt-4">
-    <ul class="pagination justify-content-center">
+    <ul class="pagination justify-content-center" id="pages">
       {{#each pages}}
       
         <li class="page-item{{#if this.isCurrent}} active{{/if}}">
@@ -56,6 +59,15 @@
 
 <!-- Additional CSS for the album cover images -->
 <style>
+  nav{
+    font-family: 'DieNasty', sans-serif;
+  }
+
+  #pages {
+    font-family: sans-serif;
+  }
+
+
   .album-cover {
     width: 50px; /* Adjust size as needed */
     height: auto;
