@@ -1,0 +1,48 @@
+(Questions / Clarifications)
+Can have Varsha as contributor for now, but likely make public later
+
+Dont put .env file into the repository (Exposes keys, poor practice)
+
+-- Instead, everyone in group shares an env file (Don't push this)
+-- Tell users in README to create their own local .env and how to set get their own ChatGPT API key
+
+If still hesitant on making repo public, email Varsha and Shreesha about this
+
+
+
+(Demo)
+Main page updated, has dynamic album covers changing on it. Account creation page made but not functional
+
+Search results ordered by relevancy/popularity, results from Spotify. Any results that didn't have lyrics were omitted from search
+
+Clicking on song gives embedded song in top right, song information in top left, lyrics in bottom left, analysis in bottom right
+
+Background page gives Wiki-esque information on song (Songwriting, inspiration, composition, recording info, etc)
+-- Historical context, personal anecdotes, reception/impact, performances/alternate versions, controversies/challenges
+
+
+
+(Plans for this week)
+Might take out ability to save analyses, but likely will still have ability to get as a PDF
+
+Need to work on account login/creation page 
+
+Charles wants to lower the analysis time by either directly streaming the analysis or a loading page
+-- Concern that users would click on a new song, page takes a while to load, user assumes its bugged and leaves
+
+May not need connections in site (Low usability)
+
+Improve NAV (Get logo in all pages in nav)
+
+Autofill of "Search for...", has rotating list of artists/songs. Would be under search bar
+-- Not an autocomplete, meant to be a visual suggestion
+
+Saving analyses to users (Saving for next week)
+-Varsha's suggestion to save one analysis to DB for instant loading, user can request new suggestion and be willing to wait for new analysis
+
+Varsha suggests a friends page to follow friends and share analyses (Key point of multiple interaction between users)
+
+Lyrics.ovh had a day of downtime, concern on reliability and that we can't swap APIs
+-- Solution of recording a demo in worst case scenario that API is down on presentation day
+---- Need to explain reasoning on demo day why we picked API despite knowing its downtime issue (IF we have issues)
+-- Varsha suggested MusixMatch, issues with account registration, costs money
