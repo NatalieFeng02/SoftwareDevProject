@@ -56,7 +56,7 @@ async function fetchAlbumCovers() {
   const accessToken = tokenData.access_token;
 
   // Step 2: Fetch Playlist Tracks
-  const playlistId = '4KmcBdDIbHeO0alvCfk2TC';
+  const playlistId = '1DPLMFnJ3F6iOkDmlEzggq';
   const albumsResponse = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -310,7 +310,7 @@ app.get('/analysis', async (req, res) => {
   const cleanedTitle = cleanTitle(decodeURIComponent(title));
   const cleanedArtist = cleanArtist(decodeURIComponent(artist));
  const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(cleanedArtist)}/${encodeURIComponent(cleanedTitle)}`;
-  const prompt = `Conclude your analysis in a complete sentence in 180 tokens or less. This is a section of the lyrics from "${title}" by "${artist}". Do NOT mention the song or the album in the first sentence of the paragraph. Give me interesting information about this section of the lyrics:  It could be analysis of the meaning, it could be historical context or context to the artist, it could be analysis of the literary devices used, it could be an anecdote behind the lyrics... Just make it interesting. However, if the section is brief or if it is just ad libs, then keep your analysis in 17 words or less.`;
+  const prompt = `Conclude your analysis in a complete sentence in 180 tokens or less. This is a section of the lyrics from "${title}" by "${artist}". Do NOT mention the song or the album in the first sentence of the paragraph. Give me interesting information about this section of the lyrics:  It could be analysis of the meaning, it could be historical context or context to the artist, it could be analysis of the literary devices used, it could be an anecdote behind the lyrics, or it could be what/who the lyrics were inspired by... Just make it interesting. However, if the section is brief or if it is just ad libs, then keep your analysis in 17 words or less. ONLY talk about this section of lyrics.`;
   console.log(`Song: "${title}" by "${artist}"`);
 
   try {
