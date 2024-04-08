@@ -3,13 +3,13 @@
 
 <div class="container my-5">
   <div class="row" id="top">
-    <div class="col-md-8" id="title">
+    <div  id="title">
       <h2 class="font-weight-bold" style="font-size: 48px;">{{title}}</h2>
       <p class="font-italic" style="font-size: 24px;">{{artist}}</p>
       <p style="font-size: 18px;">{{album}}</p>
       <button class="btn btn-dark mt-3 background-button" data-title="{{title}}" data-artist="{{artist}}" data-album="{{album}}">Background</button>
     </div>
-    <div class="col-md-4" id="spotify-embed">
+    <div id="spotify-embed">
       <!-- Spotify Embed Placeholder -->
       {{#if spotifyUri}}
         <!-- Correct usage -->
@@ -106,6 +106,9 @@
 
     #title, #spotify-embed {
         flex: 1; /* Allows both children to grow and occupy available space */
+        width: auto;
+        justify-content: center;
+        align-items: center;
     }
 
     /* Specific styles for Spotify embed to control its maximum size */
@@ -128,6 +131,37 @@
         text-align: center;
         height: 352px;
     }
+
+    /* Use flexbox for the top row */
+#top {
+  display: flex;
+  align-items: center; /* This will vertically center the children */
+  justify-content: space-around; /* This will give space around the children */
+}
+
+/* Center content within the title section */
+#title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* This will vertically center the inner content */
+  align-items: center; /* This will horizontally center the inner content */
+  text-align: center;
+}
+
+/* Adjust the Spotify embed */
+#spotify-embed {
+  display: flex;
+  justify-content: center; /* Horizontally center the iframe */
+  align-items: center; /* Vertically center the iframe */
+}
+
+/* Ensure the iframe is responsive */
+#spotify-embed iframe {
+  width: 100%;
+  max-width: 600px; /* You can adjust this value */
+  height: 352px; /* Adjust height as needed */
+}
+
 
 
 
