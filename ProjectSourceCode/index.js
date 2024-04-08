@@ -17,6 +17,7 @@ const app = express();
 
 const openai = new OpenAI(apiKey);
 const SpotifyWebApi = require('spotify-web-api-node');
+const { title } = require('process');
 
 // Set up Handlebars engine with custom directories
 app.engine('.hbs', exphbs({
@@ -186,65 +187,6 @@ app.post("/create", async (req, res) => {
 });
 
 
-// Define routes
-/*
-app.get('/search', (req, res) => {
-  res.render('search'); // This will render the search.hbs template located in views/pages
-});
-
-app.get('/results', async (req, res) => {
-  console.log(req.query);
-  const searchQuery = req.query.searchQuery || ''; // Get the search query from the URL parameter
-
-  try {
-    const apiUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(searchQuery)}&entity=song&limit=32`;
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-    
-    const songData = data.results.map(song => ({
-      title: song.trackName,
-      artist: song.artistName,
-      album: song.collectionName,
-      albumCover: song.artworkUrl100.replace('100x100', '600x600') // Enhance album cover resolution
-    }));
-
-
-    const itemsPerPage = 8; // Set the number of items per page
-    const page = req.query.page || 1; // Get the current page number from the query string, defaulting to 1
-    const totalItems = songData.length; // This should be the total number of items from your data source
-  
-    // Calculate the total number of pages
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-  
-    // Determine the slice of data to return based on the current page
-    const startIndex = (Number(page) - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const paginatedItems = songData.slice(startIndex, endIndex);
-  
-
-    const pageNumbers = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pageNumbers.push({ number: i, isCurrent: i === Number(page) });
-    }
-
-  res.render('results', {
-    searchQuery: searchQuery, // Pass the search term to the template
-    searchResults: paginatedItems, // Only pass the slice of data for the current page
-    pages: pageNumbers, // Pass the array of page numbers for pagination controls
-    totalPages: totalPages, // Pass the total number of pages
-    lastPageIsCurrent: Number(page) === totalPages, // Boolean to check if the last page is the current page
-  });
-  } catch (error) {
-    console.error('Error fetching data from iTunes API:', error);
-    res.status(500).send('Error fetching data from iTunes API');
-  }
-});
-
-// Display the login page
-app.get('/login', (req, res) => {
-  res.render('login');
-});
-*/
 
 app.get('/results', async (req, res) => {
   console.log(req.query);
@@ -252,7 +194,7 @@ app.get('/results', async (req, res) => {
 
   try {
     const accessToken = await getSpotifyAccessToken(); // Fetch a new access token using the provided function
-    const apiUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=32`;
+    const apiUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=50`;
     
     const response = await fetch(apiUrl, {
       method: 'GET',
@@ -368,7 +310,7 @@ app.get('/analysis', async (req, res) => {
   const cleanedTitle = cleanTitle(decodeURIComponent(title));
   const cleanedArtist = cleanArtist(decodeURIComponent(artist));
  const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(cleanedArtist)}/${encodeURIComponent(cleanedTitle)}`;
-  const prompt = `Conclude your analysis in a complete sentence in 180 tokens or less. This is a section of the lyrics from "${title}" by "${artist}". Do not tell me what song the lyrics are from or who wrote it; I already know. Give me interesting information about this section of the lyrics:  It could be analysis of the meaning, it could be historical context or context to the artist, it could be analysis of the literary devices used, it could be a story behind the lyrics... Just make it interesting. However, if the section is brief or if it is just ad libs, then keep your analysis in 17 words or less.`;
+  const prompt = `Conclude your analysis in a complete sentence in 180 tokens or less. This is a section of the lyrics from "${title}" by "${artist}". Do NOT mention the song or the album in the first sentence of the paragraph. Give me interesting information about this section of the lyrics:  It could be analysis of the meaning, it could be historical context or context to the artist, it could be analysis of the literary devices used, it could be an anecdote behind the lyrics... Just make it interesting. However, if the section is brief or if it is just ad libs, then keep your analysis in 17 words or less.`;
   console.log(`Song: "${title}" by "${artist}"`);
 
   try {
@@ -485,6 +427,158 @@ spotifyApi.clientCredentialsGrant().then(data => {
 }, err => {
   console.log('Something went wrong when retrieving an access token', err);
 });
+
+
+// Route to serve the background page
+app.get('/background', async (req, res) => {
+  const { title, artist, album } = req.query;
+
+  const cleanedTitle = cleanTitle(decodeURIComponent(title));
+  const cleanedArtist = cleanArtist(decodeURIComponent(artist));
+
+  // Prepare the titles and prompts for each section to be analyzed by GPT-3
+  const sectionsInfo = [
+    { title: "Introduction", description: "Provide a brief overview of the song and its context and significance to the legacy in the artist's career or music history." },
+    { title: "Songwriting/Inspiration, Composition, Recording", description: "Discuss the songwriting process, musical composition, studio sessions, and production details.  Include any technical details known about equipment used.  Report on any studio anecdotes there may be.  Dive as deep as possible into these topics. Do NOT start the paragraph with an introduction about the song title, artist, and album, because we already know what the song is." },
+    { title: "Historical Context", description: "Explain its era, relevant social, political, or cultural events at the time of its creation, and its influence on the song. Do NOT start the paragraph with an introduction about the song title, artist, and album, because we already know what the song is." },
+    { title: "Personal Anecdotes and Stories", description: "Share insights from the stories surrounding the artist from the artist themselves or from people who knew them if there are any. Talk about stories from fans if there are any.  Do NOT talk about anything other than anecdotes. Do NOT start the paragraph with an introduction about the song title, artist, and album, because we already know what the song is." },
+    { title: "Reception and Impact", description: "Describe its initial reception, long-term legacy, and influence on musical trends or genres. Do NOT start the paragraph with an introduction about the song title, artist, and album, because we already know what the song is." },
+    { title: "Notable Performances and Versions", description: "Highlight notable live performances, covers, and remixes.  If there are stories behind any of these, talk about them. Do NOT start the paragraph with an introduction about the song title, artist, and album, because we already know what the song is." },
+    { title: "Controversies and Challenges", description: "Cover any legal issues or controversies. If there are no legal issues or controversies, respond with: '-'. Do NOT start the paragraph with an introduction about the song title, artist, and album, because we already know what the song is." }
+  ];
+
+  // Initialize an array to hold the background information results
+  let backgroundResults = [];
+
+  try {
+    const coverUrl = await fetchSpotifyAlbumCover(cleanedTitle, cleanedArtist);
+    const credits = await fetchSongCredits(cleanedTitle, cleanedArtist);
+
+    const gptPromises = sectionsInfo.map(sectionInfo => {
+      const messages = [{
+        "role": "system",
+        "content": `I am writing information about the song "${cleanedTitle}" by "${cleanedArtist}". I must only write about factual information.  I must write the most interesting information I can find.  I must not organize the information into sections.`
+      }, {
+        "role": "user",
+        "content": `${sectionInfo.description}`
+      }];
+
+      return fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4-0125-preview",
+          messages,
+          temperature: 0.5,
+          max_tokens: 1200
+        }),
+      })
+      .then(response => response.json())
+      .then(json => {
+        if (json.error) {
+          console.error('GPT-3 API error:', json.error);
+        }
+        const content = json.choices && json.choices.length > 0 && json.choices[0].message ? json.choices[0].message.content : 'No content available.';
+        return { title: sectionInfo.title, content: content };
+      })
+      .catch(error => {
+        console.error('Fetch error:', error);
+        return { title: sectionInfo.title, content: 'Error retrieving content.' };
+      });
+    });
+
+    backgroundResults = await Promise.all(gptPromises);
+
+    res.render('background', {
+      title: decodeURIComponent(title),
+      artist: decodeURIComponent(artist),
+      album: decodeURIComponent(album),
+      cover: coverUrl,
+      credits: credits,
+      backgroundResults
+    });
+  } catch (error) {
+    console.error('Catch error:', error);
+    res.render('background', {
+      error: `An error occurred: ${error.message}`,
+      backgroundResults: [] // Ensure the template can handle an empty array
+    });
+  }
+});
+
+async function fetchSpotifyAlbumCover(cleanedTitle, cleanedArtist) {
+  try {
+    // Use the Spotify API to search for the track using the cleaned title and artist
+    const response = await spotifyApi.searchTracks(`track:${cleanedTitle} artist:${cleanedArtist}`, { limit: 1 });
+    if (response.body.tracks.items.length > 0) {
+      // Assuming the first match is the correct one, get the album's images
+      const albumImages = response.body.tracks.items[0].album.images;
+      // Return the URL of the first image (usually the largest) if available
+      if (albumImages.length > 0) {
+        return albumImages[0].url;
+      } else {
+        throw new Error('No album cover found');
+      }
+    } else {
+      throw new Error('No track found with the specified title and artist');
+    }
+  } catch (error) {
+    console.error('Spotify API error:', error);
+    throw error; // Rethrow the error to be caught by the calling function
+  }
+}
+
+async function fetchSongCredits(songName, artistName) {
+  try {
+    const searchResponse = await spotifyApi.searchTracks(`track:${songName} artist:${artistName}`, { limit: 1 });
+    if (searchResponse.body.tracks.items.length === 0) {
+      throw new Error('Track not found.');
+    }
+
+    const trackId = searchResponse.body.tracks.items[0].id;
+    const trackResponse = await spotifyApi.getTrack(trackId);
+
+    // Format the release date to include month and day if available
+    let formattedReleaseDate = "-";
+    if (trackResponse.body.album.release_date) {
+      formattedReleaseDate = formatReleaseDate(trackResponse.body.album.release_date);
+    }
+
+    // Initialize the credits object
+    let credits = {
+      performers: getCreditInfo(trackResponse.body.artists.map(artist => artist.name).join(', ')),
+      writers: getCreditInfo("Example Writers"),
+      producers: getCreditInfo("Example Producers"),
+      releaseDate: formattedReleaseDate
+    };
+
+    return credits;
+  } catch (error) {
+    console.error('Error fetching song credits:', error);
+    throw error;
+  }
+}
+
+// Helper function to format release date
+function formatReleaseDate(dateString) {
+  console.log(dateString);
+  // Check if dateString is in full YYYY-MM-DD format
+  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    // Convert to more readable format, e.g., "Month DD, YYYY"
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+  // Return as is if not in full date format
+  return dateString;
+}
+
+// Existing helper function
+function getCreditInfo(creditDetail) {
+  return creditDetail.startsWith("Example") ? "-" : creditDetail;
+}
 
 
 // Handle logout action
