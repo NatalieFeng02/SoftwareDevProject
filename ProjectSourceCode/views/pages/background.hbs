@@ -1,0 +1,109 @@
+{{> in_nav}}
+
+<div id="top">
+    <div id="background-title">
+        <h1>Background:</h1>
+        <div id="credits">
+            {{#if credits.performers}}
+                <div class="credit-item">
+                    <h3>Performed by: </h3> <h4>{{credits.performers}}</h4>
+                </div>
+            {{/if}}
+            {{#if credits.writers}}
+                <div class="credit-item">
+                    <h3>Written by: </h3> <h4>{{credits.writers}}</h4>
+                </div>
+            {{/if}}
+            {{#if credits.producers}}
+                <div class="credit-item">
+                    <h3>Produced by: </h3> <h4>{{credits.producers}}</h4>
+                </div>
+            {{/if}}
+            {{#if credits.releaseDate}}
+                <div class="credit-item">
+                    <h3>Release Date: </h3> <h4>{{credits.releaseDate}}</h4>
+                </div>
+            {{/if}}
+        </div>
+    </div>
+    <div id="title">
+        <h2 class="font-weight-bold" style="font-size: 48px;">{{title}}</h2>
+        <p class="font-italic" style="font-size: 24px;">{{artist}}</p>
+        <p style="font-size: 18px;">{{album}}</p>
+    </div>
+    <div id="album-cover">
+        <img src="{{cover}}" alt="Album Cover" style="width: 300px;">
+    </div>
+</div>
+<div id="background-analysis">
+    {{#each backgroundResults}}
+        <div class="background-section">
+            <h3>{{this.title}}</h3>
+            <p>{{this.content}}</p>
+        </div>
+    {{/each}}
+</div>
+
+<style>
+    #top {
+        display: flex;
+        justify-content: space-between;
+        margin: 20px;
+    }
+
+
+    #title {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        justify-content: center;
+        align-items: center;
+        padding-left: 10px;
+        padding right: 10px;
+    }
+
+    #background-title {
+        display: flex;
+        justify-content: center;
+        font-weight: 900;
+        font-family: 'Inter', sans-serif;
+        flex-direction: column;
+    }
+
+    #credits h3 {
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    #credits h4 {
+        font-weight: 300;
+        font-size: 14px;
+        margin-left: 5px; /* Ensures spacing between h3 and h4 */
+    }
+
+    h1{
+        font-weight: 900;
+    }
+
+    #credits .credit-item {
+        display: flex;
+        align-items: center; /* This ensures vertical alignment is centered */
+    }   
+
+    #credits h3, #credits h4 {
+        margin: 0; /* Removes default margins */
+        padding-right: 5px; /* Adds some spacing between the label and value */
+    }
+
+    .background-section h3 {
+        font-weight: bold;
+        margin-top: 20px;
+    }
+
+    .background-section p {
+        text-indent: 20px;
+        text-align: justify;
+        margin-bottom: 20px;
+    }
+
+</style>

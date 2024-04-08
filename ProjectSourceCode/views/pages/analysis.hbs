@@ -7,7 +7,7 @@
       <h2 class="font-weight-bold" style="font-size: 48px;">{{title}}</h2>
       <p class="font-italic" style="font-size: 24px;">{{artist}}</p>
       <p style="font-size: 18px;">{{album}}</p>
-      <button onclick="location.href='/background'" class="btn btn-dark mt-3">Background</button>
+      <button class="btn btn-dark mt-3 background-button" data-title="{{title}}" data-artist="{{artist}}" data-album="{{album}}">Background</button>
     </div>
     <div class="col-md-4" id="spotify-embed">
       <!-- Spotify Embed Placeholder -->
@@ -15,7 +15,6 @@
         <!-- Correct usage -->
         <iframe src="https://open.spotify.com/embed/track/{{{spotifyUri}}}" width="600" height="352" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
       {{/if}}
-
     </div> 
   </div>
 
@@ -135,16 +134,22 @@
 </style>
 
 <script>
-window.addEventListener('load', () => {
-  const title = sessionStorage.getItem('selectedTitle');
-  const artist = sessionStorage.getItem('selectedArtist');
-  const album = sessionStorage.getItem('selectedAlbum');
+document.addEventListener('DOMContentLoaded', function() {
+  // Select the button by its class
+  const backgroundButton = document.querySelector('.background-button');
 
-  if (title && artist && album) {
-    document.querySelector('.your-title-class').innerText = title;
-    document.querySelector('.your-artist-class').innerText = artist;
-    document.querySelector('.your-album-class').innerText = album;
-    // If you have a button or link to navigate to /background, it's already there
-  }
+  // Add click event listener to the button
+  backgroundButton.addEventListener('click', function() {
+    // Retrieve data attributes
+    const title = this.getAttribute('data-title');
+    const artist = this.getAttribute('data-artist');
+    const album = this.getAttribute('data-album');
+
+    // Construct the URL with query parameters
+    const backgroundUrl = `/background?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(album)}`;
+
+    // Navigate to the background page
+    window.location.href = backgroundUrl;
+  });
 });
 </script>
