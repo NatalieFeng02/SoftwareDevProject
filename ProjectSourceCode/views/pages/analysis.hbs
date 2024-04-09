@@ -175,15 +175,19 @@ document.addEventListener('DOMContentLoaded', function() {
   // Add click event listener to the button
   backgroundButton.addEventListener('click', function() {
     // Retrieve data attributes
-    const title = this.getAttribute('data-title');
-    const artist = this.getAttribute('data-artist');
-    const album = this.getAttribute('data-album');
+    const title = encodeURIComponent(this.getAttribute('data-title'));
+    const artist = encodeURIComponent(this.getAttribute('data-artist'));
+    const album = encodeURIComponent(this.getAttribute('data-album'));
 
-    // Construct the URL with query parameters
-    const backgroundUrl = `/background?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(album)}`;
+    // Construct the URL for the background page with query parameters
+    const backgroundUrl = `/background?title=${title}&artist=${artist}&album=${album}`;
 
-    // Navigate to the background page
-    window.location.href = backgroundUrl;
+    // Construct the loading URL with the background URL as the redirectUrl parameter
+    const loadingUrl = `/loading?redirectUrl=${encodeURIComponent(backgroundUrl)}`;
+
+    // Navigate to the loading page, which will then redirect to the background page
+    window.location.href = loadingUrl;
   });
 });
+
 </script>

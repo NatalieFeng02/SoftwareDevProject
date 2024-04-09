@@ -111,6 +111,7 @@
 </style>
 
 <script>
+  console.log("Javascript is working here");
   document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.clickable-row').forEach(row => {
       row.addEventListener('click', function() {
@@ -120,17 +121,16 @@
     });
   });
 
-  function handleRowClick(row) {
-    const title = row.getAttribute('data-title');
-    const artist = row.getAttribute('data-artist');
-    const album = row.getAttribute('data-album');
+function handleRowClick(row) {
+  const title = encodeURIComponent(row.getAttribute('data-title'));
+  const artist = encodeURIComponent(row.getAttribute('data-artist'));
+  const album = encodeURIComponent(row.getAttribute('data-album')); // if used
+  const analysisUrl = `/analysis?title=${title}&artist=${artist}&album=${album}`;
+  const loadingUrl = `/loading?redirectUrl=${encodeURIComponent(analysisUrl)}`;
+  console.log('Redirecting to: ', loadingUrl); // Check if the URL looks correct
+  window.location.href = loadingUrl;
+}
 
-    // Construct URL with query parameters
-    const analysisUrl = `/analysis?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(album)}`;
-
-    // Navigate to the analysis page with the data
-    window.location.href = analysisUrl;
-  }
 </script>
 
 

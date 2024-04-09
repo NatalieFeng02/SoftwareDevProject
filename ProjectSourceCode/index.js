@@ -189,11 +189,10 @@ app.post("/create", async (req, res) => {
 
 
 app.get('/results', async (req, res) => {
-  console.log(req.query);
-  const searchQuery = req.query.searchQuery || ''; // Get the search query from the URL parameter
+  const searchQuery = req.query.searchQuery || '';
 
   try {
-    const accessToken = await getSpotifyAccessToken(); // Fetch a new access token using the provided function
+    const accessToken = await getSpotifyAccessToken();
     const apiUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=50`;
     
     const response = await fetch(apiUrl, {
@@ -202,6 +201,7 @@ app.get('/results', async (req, res) => {
         'Authorization': `Bearer ${accessToken}`
       }
     });
+
     const data = await response.json();
 
     let songData = data.tracks.items.map(track => ({
@@ -214,18 +214,17 @@ app.get('/results', async (req, res) => {
       }, track.album.images[0]).url
     }));
 
-    // Apply cleanTitle and cleanArtist functions before checking lyrics availability
     const filteredSongData = await Promise.all(songData.map(async song => {
       const cleanedTitle = cleanTitle(song.title);
       const cleanedArtist = cleanArtist(song.artist);
       const lyricsResponse = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(cleanedArtist)}/${encodeURIComponent(cleanedTitle)}`);
+      
       if (lyricsResponse.ok) {
         return { ...song, lyricsAvailable: true };
       }
       return null;
     }));
 
-    // Remove tracks where lyrics are not available (null entries)
     const songsWithLyrics = filteredSongData.filter(song => song !== null);
 
     const itemsPerPage = 8;
@@ -247,13 +246,13 @@ app.get('/results', async (req, res) => {
       searchResults: paginatedItems,
       pages: pageNumbers,
       totalPages: totalPages,
-      lastPageIsCurrent: Number(page) === totalPages,
     });
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).send('Error fetching data');
   }
 });
+
 
 async function getSpotifyAccessToken() {
   const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
@@ -307,6 +306,10 @@ function cleanArtist(artist) {
 
 app.get('/analysis', async (req, res) => {
   const { title, artist } = req.query;
+  console.log("Query Parameters:", req.query);
+  if (!title || !artist) {
+    return res.status(400).send('Song title and artist are required');
+  }
   const cleanedTitle = cleanTitle(decodeURIComponent(title));
   const cleanedArtist = cleanArtist(decodeURIComponent(artist));
  const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(cleanedArtist)}/${encodeURIComponent(cleanedTitle)}`;
@@ -579,6 +582,13 @@ function formatReleaseDate(dateString) {
 function getCreditInfo(creditDetail) {
   return creditDetail.startsWith("Example") ? "-" : creditDetail;
 }
+
+// Consolidated loading route
+app.get('/loading', (req, res) => {
+  console.log('Received redirect URL:', req.query.redirectUrl);
+  res.render('loading', { redirectUrl: req.query.redirectUrl });
+});
+
 
 
 // Handle logout action
