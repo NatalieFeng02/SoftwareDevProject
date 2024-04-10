@@ -647,7 +647,7 @@ app.use(auth);
 // Handle logout action
 app.get('/logout', (req, res) => {
   req.session.destroy();
-  res.render('pages/logout');
+  res.render('logout');
 });
 
 
@@ -663,7 +663,7 @@ module.exports = app.listen(PORT, () => console.log(`Server running on port ${PO
 
 
 app.get('/accountinformation', (req, res) => {
-  res.render('pages/accountinformation');
+  res.render('accountinformation');
 });
 
 
