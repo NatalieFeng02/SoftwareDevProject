@@ -112,42 +112,6 @@ app.get('/search', (req, res) => {
   res.render('search');
 });
 
-app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-  const query = `SELECT * FROM users WHERE username = $1 LIMIT 1`;
-  const values = [username];
-  
-  db.one(query, values)
-    .then(async result => {
-      // At this point, a user was found, proceed with password check
-      const user = result;
-      const match = await bcrypt.compare(password, user.password);
-
-      if (match) {
-        // Correct password
-        req.session.user = user;
-        req.session.save(() => {
-          return res.redirect('/search');
-        });
-      } else {
-        // Incorrect password
-        return res.render('/login', {errorMessage: 'Incorrect username or password.'});
-      }
-    })
-    .catch(error => {
-      // Handle both the "no user found" scenario and other potential errors
-      if (error.name === 'QueryResultError') {
-        // This error name might differ based on your DB library; adjust accordingly.
-        // User not found
-        return res.render('/login', {errorMessage: 'No account found with that username.'});
-      } 
-      else {
-        // Other errors (e.g., database connection issues)
-        console.error(error);
-        return res.render('/login', {errorMessage: 'An error occurred, please try again later.'});
-      }
-    });
-});
 // MODIFY LATER
 
 app.post('/register', async (req, res) => {
@@ -167,36 +131,47 @@ app.post('/register', async (req, res) => {
 
 });
 
-// MODIFY LATER ^^^
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+app.post("/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [
+      username,
+    ]);
+    if (user) {
+      const passwordMatch = await bcrypt.compare(password, user.password);
 
-// // Route to render the create form
-// app.get("/", (req, res) => {
-//   res.redirect("/login");
-// });
-// app.get('/create', (req, res) => {
-//   res.render('create');
-// });
+      if (passwordMatch) {
+        req.session.user = user;
+        req.session.save();
+        return res.redirect("/");
+      } else {
+        return res.render("login", {
+          message: "Incorrect username or password.",
+        });
+      }
+    } else {
+      return res.render("login", {
+        message: "User not found. Please register.",
+      });
+    }
+  } catch (error) {
+    console.error("Error during login:", error);
+    return res.render("login", {
+      message: "An error occurred. Please try again.",
+    });
+  }
+});
 
-// // Route to handle form submission and create a new user
-// app.post('/create', async (req, res) => {
-//   const { username, email, password } = req.body;
 
-//   try {
-//     // Hash the password
-//     const hash = await bcrypt.hash(password, 10);
-
-//     // Insert user into the database
-//     const query = 'INSERT INTO users(username, email, password) VALUES ($1, $2, $3)';
-//     await pool.query(query, [username, email, hash]);
-
-//     // Redirect to login page upon successful creation
-//     res.redirect('/login');
-
-//   } catch (error) {
-//     console.error(error);
-//     res.redirect('/create');
+// const auth = (req, res, next) => {
+//   if (!req.session.user) {
+//     return res.redirect("/login");
 //   }
-// });
+//   next();
+// };
 
 app.get("/", (req, res) => {
   res.redirect("/login");
