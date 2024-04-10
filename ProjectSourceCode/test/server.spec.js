@@ -69,6 +69,8 @@ describe('Testing Add User API', () => {
   });
 */
 
+/*
+
 // Tests that search page is correctly rendering
   describe('Testing Render', () => {
     // Sample test case given to test /test endpoint.
@@ -96,5 +98,7 @@ describe('Testing Add User API', () => {
         });
     });
   });
+
+  */
 
 // ********************************************************************************

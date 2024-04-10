@@ -8,7 +8,7 @@ const OpenAI = require('openai');
 const express = require('express');
 const exphbs = require('express-handlebars');
 const path = require('path');
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcryptjs');
 const pgp = require('pg-promise')(); // To connect to the Postgres DB from the node server
 
 const fetch = require('node-fetch');
