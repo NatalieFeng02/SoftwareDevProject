@@ -663,7 +663,10 @@ module.exports = app.listen(PORT, () => console.log(`Server running on port ${PO
 
 
 app.get('/accountinformation', (req, res) => {
-  res.render('accountinformation');
+  res.render('accountinformation', {
+    username: req.session.user.username,
+    email: req.session.user.email,
+  });
 });
 
 
