@@ -175,7 +175,7 @@ app.post("/login", async (req, res) => {
       if (passwordMatch) {
         // req.session.user = user;
         // await req.session.save(); // Ensure session saving is awaited
-        return res.redirect("/");
+        return res.redirect("search");
       } else {
         return res.render("login", {
           message: "Incorrect username or password.",
