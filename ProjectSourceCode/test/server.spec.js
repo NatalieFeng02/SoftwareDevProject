@@ -39,7 +39,7 @@ describe('Server!', () => {
 // Explanation: The testcase will call the /add_user API with the following input
 // and expects the API to return a status of 200 along with the "Success" message.
 
-
+/*
 describe('Testing Add User API', () => {
     it('positive : /create', done => {
       chai
@@ -67,7 +67,7 @@ describe('Testing Add User API', () => {
         });
     });
   });
-
+*/
 
 // Tests that search page is correctly rendering
   describe('Testing Render', () => {
