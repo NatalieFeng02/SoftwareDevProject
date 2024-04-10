@@ -131,21 +131,50 @@ app.post('/register', async (req, res) => {
 
 });
 
-app.get("/login", (req, res) => {
-  res.render("login");
-});
+// app.get("/login", (req, res) => {
+//   res.render("login");
+// });
+// app.post("/login", async (req, res) => {
+//   try {
+//     const { username, password } = req.body;
+//     const user = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [
+//       username,
+//     ]);
+//     if (user) {
+//       const passwordMatch = await bcrypt.compare(password, user.password);
+
+//       if (passwordMatch) {
+//         req.session.user = user;
+//         req.session.save();
+//         return res.redirect("/");
+//       } else {
+//         return res.render("login", {
+//           message: "Incorrect username or password.",
+//         });
+//       }
+//     } else {
+//       return res.render("login", {
+//         message: "User not found. Please register.",
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Error during login:", error);
+//     return res.render("login", {
+//       message: "An error occurred. Please try again.",
+//     });
+//   }
+// });
 app.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [
-      username,
-    ]);
+    const user = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [username]);
+    
     if (user) {
       const passwordMatch = await bcrypt.compare(password, user.password);
 
       if (passwordMatch) {
-        req.session.user = user;
-        req.session.save();
+        // req.session.user = user;
+        // await req.session.save(); // Ensure session saving is awaited
         return res.redirect("/");
       } else {
         return res.render("login", {
@@ -166,12 +195,15 @@ app.post("/login", async (req, res) => {
 });
 
 
-// const auth = (req, res, next) => {
+// const a = (req, res, next) => {
 //   if (!req.session.user) {
 //     return res.redirect("/login");
 //   }
 //   next();
 // };
+
+// app.use(a);
+
 
 app.get("/", (req, res) => {
   res.redirect("/login");
@@ -603,21 +635,23 @@ app.get('/loading', (req, res) => {
 });
 
 
+const auth = (req, res, next) => {
+  if (!req.session.user) {
+    return res.redirect("/login");
+  }
+  next();
+};
+
+app.use(auth);
 
 // Handle logout action
 app.get('/logout', (req, res) => {
   req.session.destroy();
-  res.render('pages/logout');
+  res.render('logout');
 });
 
 
-const auth = (req, res, next) => {
-  if (!req.session.user) {
-    // Default to login page.
-    return res.redirect('/login');
-  }
-  next();
-};
+
 // Handle 404 errors
 app.use((req, res, next) => {
   res.status(404).send('Sorry, that page does not exist!');
@@ -629,7 +663,7 @@ module.exports = app.listen(PORT, () => console.log(`Server running on port ${PO
 
 
 app.get('/accountinformation', (req, res) => {
-  res.render('pages/accountinformation');
+  res.render('accountinformation');
 });
 
 
