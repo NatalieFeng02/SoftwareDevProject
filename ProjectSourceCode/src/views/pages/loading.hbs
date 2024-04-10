@@ -50,7 +50,7 @@ main {
     stroke: grey; /* Infinity sign background to grey */
 }
 .ip__worm1, .ip__worm2 {
-    stroke: white; /* Infinity animation to white */
+    stroke: {{dominantColor}}; /* Infinity animation to white */
     animation: worm1 2s linear infinite;
 }
 .ip__worm2 {
@@ -73,16 +73,24 @@ main {
 
 
 <script>
-  // Assuming 'dominantColor' is something like 'rgb(255, 0, 0)' or '#FF0000'
-  // This script is correctly applying the animation, just make sure 'dominantColor' is correctly formatted
   document.addEventListener('DOMContentLoaded', function() {
+    const dominantColor = "{{dominantColor}}"; // Ensure this value is passed from the server
+    // Set the gradient stop colors
+    document.querySelectorAll('stop').forEach(stop => {
+      stop.setAttribute('stop-color', dominantColor);
+    });
+
     console.log('Redirecting to:', "{{{redirectUrl}}}");
     setTimeout(() => {
       window.location.href = "{{{redirectUrl}}}";
     }, 1000); // Adjust timing as needed
   });
-
 </script>
+
+
+
+
+
 
 
 

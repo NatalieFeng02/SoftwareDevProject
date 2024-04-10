@@ -69,7 +69,6 @@ describe('Testing Add User API', () => {
   });
 */
 
-/*
 
 // Tests that search page is correctly rendering
   describe('Testing Render', () => {
@@ -98,7 +97,5 @@ describe('Testing Add User API', () => {
         });
     });
   });
-
-  */
 
 // ********************************************************************************

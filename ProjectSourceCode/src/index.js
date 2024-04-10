@@ -10,6 +10,10 @@ const exphbs = require('express-handlebars');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const pgp = require('pg-promise')(); // To connect to the Postgres DB from the node server
+const fs = require('fs');
+const os = require('os');
+const Vibrant = require('node-vibrant');
+
 
 const fetch = require('node-fetch');
 
@@ -343,7 +347,7 @@ function cleanArtist(artist) {
 }
 
 app.get('/analysis', async (req, res) => {
-  const { title, artist } = req.query;
+  const { title, artist, } = req.query;
   console.log("Query Parameters:", req.query);
   if (!title || !artist) {
     return res.status(400).send('Song title and artist are required');
@@ -492,7 +496,7 @@ app.get('/background', async (req, res) => {
   let backgroundResults = [];
 
   try {
-    const coverUrl = await fetchSpotifyAlbumCover(cleanedTitle, cleanedArtist);
+    const coverUrl = await fetchSpotifyAlbumCovers(cleanedTitle, cleanedArtist);
     const credits = await fetchSongCredits(cleanedTitle, cleanedArtist);
 
     const gptPromises = sectionsInfo.map(sectionInfo => {
@@ -550,7 +554,7 @@ app.get('/background', async (req, res) => {
   }
 });
 
-async function fetchSpotifyAlbumCover(cleanedTitle, cleanedArtist) {
+async function fetchSpotifyAlbumCovers(cleanedTitle, cleanedArtist) {
   try {
     // Use the Spotify API to search for the track using the cleaned title and artist
     const response = await spotifyApi.searchTracks(`track:${cleanedTitle} artist:${cleanedArtist}`, { limit: 1 });
@@ -622,10 +626,48 @@ function getCreditInfo(creditDetail) {
 }
 
 // Consolidated loading route
-app.get('/loading', (req, res) => {
-  console.log('Received redirect URL:', req.query.redirectUrl);
-  res.render('loading', { redirectUrl: req.query.redirectUrl });
+const getDominantColor = async (albumCover) => {
+  return new Promise((resolve, reject) => {
+    // Create a Vibrant instance from the image URL
+    const vibrant = new Vibrant(albumCover);
+    
+    // Extract the palette asynchronously
+    vibrant.getPalette((err, palette) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      // Get the dominant color from the palette
+      const dominantColor = palette.Vibrant.getHex();
+      resolve(dominantColor);
+    });
+  });
+};
+
+app.get('/loading', async (req, res) => {
+  const { redirectUrl } = req.query;
+  console.log('Redirect URL:', redirectUrl);
+
+  const decodedRedirectUrl = decodeURIComponent(redirectUrl);
+
+  const urlObj = new URL(decodedRedirectUrl, `http://${req.headers.host}`);
+  const albumCover = urlObj.searchParams.get('albumCover');
+  console.log('Album Cover:', albumCover);
+
+  try {
+    // Get the dominant color asynchronously
+    const dominantColor = await getDominantColor(albumCover);
+    console.log('Dominant Color:', dominantColor);
+
+    // Render the loading page with albumCover and dominantColor
+    res.render('loading', { redirectUrl, albumCover, dominantColor });
+  } catch (error) {
+    console.error('Error processing album cover:', error);
+    res.status(500).send('Failed to process album cover.');
+  }
 });
+
 
 
 

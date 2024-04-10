@@ -18,7 +18,7 @@
       </thead>
       <tbody>
         {{#each searchResults}}
-        <tr class="clickable-row" data-title="{{title}}" data-artist="{{artist}}" data-album="{{album}}">
+        <tr class="clickable-row" data-title="{{title}}" data-artist="{{artist}}" data-album="{{album}}" data-album-cover="{{this.albumCover}}">
           <td class="album-cover-cell">
             <img src="{{this.albumCover}}" alt="{{this.title}}" class="album-cover">
           </td>
@@ -124,12 +124,19 @@
 function handleRowClick(row) {
   const title = encodeURIComponent(row.getAttribute('data-title'));
   const artist = encodeURIComponent(row.getAttribute('data-artist'));
-  const album = encodeURIComponent(row.getAttribute('data-album')); // if used
-  const analysisUrl = `/analysis?title=${title}&artist=${artist}&album=${album}`;
-  const loadingUrl = `/loading?redirectUrl=${encodeURIComponent(analysisUrl)}`;
-  console.log('Redirecting to: ', loadingUrl); // Check if the URL looks correct
+  const album = encodeURIComponent(row.getAttribute('data-album'));
+  
+  // Find the <img> element within the clicked row and get its src attribute
+  const albumCoverElement = row.querySelector('.album-cover'); // Use querySelector to find the first element with the class
+  const albumCover = albumCoverElement ? encodeURIComponent(albumCoverElement.src) : ''; // Get the src attribute of the img element, and handle case where it might not exist
+  
+  const loadingUrl = `/loading?redirectUrl=${encodeURIComponent(`/analysis?title=${title}&artist=${artist}&album=${album}&albumCover=${albumCover}`)}`;
   window.location.href = loadingUrl;
 }
+
+
+
+
 
 </script>
 
@@ -204,6 +211,12 @@ function handleRowClick(row) {
 {{> footer}}
 
 --}}
+
+
+
+
+
+
 
 
 
