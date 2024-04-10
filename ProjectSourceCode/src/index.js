@@ -198,9 +198,6 @@ app.post('/register', async (req, res) => {
 //   }
 // });
 
-// app.get("/", (req, res) => {
-//   res.redirect("/login");
-// });
 app.get("/", (req, res) => {
   res.redirect("/login");
 });
