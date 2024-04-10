@@ -655,21 +655,24 @@ app.get('/forgotpassword', (req, res) => {
 });
 
 //Reset Password
-app.post('/forgotpassword', function (req, res) {
+app.put('/forgotpassword', function (req, res) {
   const query =
-    'update users set password = $1 where username = $2 and where email = $3 returning * ;';
+    'update users set password = $1 where username = $2 and email = $3 returning * ;';
 
   db.any(query, [req.body.password, req.body.username, req.body.email])
     // if query execution succeeds
     .then(function (data) {
-        //status: 'success'
-      res.render('resetsuccess');
+        if(data.length > 0){
+          res.render('resetsuccess');
+        }
+        else{
+          res.render('accountnotfound');
+        }
     })
     // if query execution fails
     // send error message
     .catch(function (err) {
-      res.render('accountnotfound')
-      return console.log(err);
+      console.error('Error updating password:', err);
     });
 });
 
