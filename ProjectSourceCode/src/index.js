@@ -10,7 +10,8 @@ const exphbs = require('express-handlebars');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const pgp = require('pg-promise')(); // To connect to the Postgres DB from the node server
-
+const bodyParser = require('body-parser');
+const session = require('express-session');
 const fetch = require('node-fetch');
 
 const queryString = require('querystring');
@@ -31,6 +32,20 @@ app.engine('.hbs', exphbs({
 app.set('view engine', '.hbs');
 app.set('views', path.join(__dirname, 'views/pages')); // Correct path to your pages
 
+// initialize session variables
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    saveUninitialized: false,
+    resave: false,
+  })
+);
+
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  })
+);
 
 // Serve static files from the "public" directory
 app.use(express.static(path.join(__dirname, 'public')));
@@ -175,7 +190,7 @@ app.post("/login", async (req, res) => {
       if (passwordMatch) {
         // req.session.user = user;
         // await req.session.save(); // Ensure session saving is awaited
-        return res.redirect("search");
+        return res.redirect("/");
       } else {
         return res.render("login", {
           message: "Incorrect username or password.",
@@ -634,6 +649,40 @@ app.get('/loading', (req, res) => {
   res.render('loading', { redirectUrl: req.query.redirectUrl });
 });
 
+//Render forgotpassword page
+app.get('/forgotpassword', (req, res) => {
+  res.render('forgotpassword');
+});
+
+//Reset Password
+app.post('/forgotpassword', function (req, res) {
+  const query =
+    'update users set password = $1 where username = $2 and where email = $3 returning * ;';
+
+  db.any(query, [req.body.password, req.body.username, req.body.email])
+    // if query execution succeeds
+    .then(function (data) {
+        //status: 'success'
+      res.render('resetsuccess');
+    })
+    // if query execution fails
+    // send error message
+    .catch(function (err) {
+      res.render('accountnotfound')
+      return console.log(err);
+    });
+});
+
+//Render accountnotfound page
+app.get('/accountnotfound', (req, res) => {
+  res.render('accountnotfound');
+});
+
+//Render resetsuccess page
+app.get('/resetsuccess', (req, res) => {
+  res.render('resetsuccess');
+});
+
 
 const auth = (req, res, next) => {
   if (!req.session.user) {
@@ -668,5 +717,4 @@ app.get('/accountinformation', (req, res) => {
     email: req.session.user.email,
   });
 });
-
 
