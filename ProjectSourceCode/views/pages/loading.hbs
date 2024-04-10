@@ -1,43 +1,87 @@
-{{> header}}
-
-<div class="loading-container">
-  <div class="loading-spinner"></div>
-  <p>Loading...</p>
-</div>
-
-{{> footer}}
-
+<main>
+    <svg class="ip" viewBox="0 0 256 128" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="white" />
+                <stop offset="100%" stop-color="white" />
+            </linearGradient>
+            <linearGradient id="grad2" x1="1" y1="0" x2="0" y2="0">
+                <stop offset="0%" stop-color="white" />
+                <stop offset="100%" stop-color="white" />
+            </linearGradient>
+        </defs>
+        <g fill="none" stroke-linecap="round" stroke-width="16">
+            <g class="ip__track" stroke="grey">
+                <path d="M8,64s0-56,60-56,60,112,120,112,60-56,60-56"/>
+                <path d="M248,64s0-56-60-56-60,112-120,112S8,64,8,64"/>
+            </g>
+            <g stroke-dasharray="180 656">
+                <path class="ip__worm1" stroke="url(#grad1)" stroke-dashoffset="0" d="M8,64s0-56,60-56,60,112,120,112,60-56,60-56"/>
+                <path class="ip__worm2" stroke="url(#grad2)" stroke-dashoffset="358" d="M248,64s0-56-60-56-60,112-120,112S8,64,8,64"/>
+            </g>
+        </g>
+    </svg>
+</main>
 <style>
-  .loading-container {
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body, html {
+    height: 100%;
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
-    min-height: 100vh;
-  }
+    align-items: center;
+    background-color: #222222; /* Ensuring the body fills the entire screen */
+}
+main {
+    display: flex; /* This makes it easier to center the content of main */
+    justify-content: center; /* Center horizontally inside the main */
+    align-items: center; /* Center vertically inside the main */
+    width: 100%; /* Ensures main element stretches across the viewport width */
+    height: 100vh; /* Matches the viewport height */
+}
+.ip {
+    width: 16em;
+    height: 8em;
+}
+.ip__track {
+    stroke: grey; /* Infinity sign background to grey */
+}
+.ip__worm1, .ip__worm2 {
+    stroke: white; /* Infinity animation to white */
+    animation: worm1 2s linear infinite;
+}
+.ip__worm2 {
+    animation-name: worm2;
+}
 
-  .loading-spinner {
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #3498db;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 2s linear infinite;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
+@keyframes worm1 {
+    from { stroke-dashoffset: 0; }
+    50% { animation-timing-function: steps(1); stroke-dashoffset: -358; }
+    50.01% { animation-timing-function: linear; stroke-dashoffset: 358; }
+    to { stroke-dashoffset: 0; }
+}
+@keyframes worm2 {
+    from { stroke-dashoffset: 358; }
+    50% { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: -358; }
+}
 </style>
 
+
+
 <script>
+  // Assuming 'dominantColor' is something like 'rgb(255, 0, 0)' or '#FF0000'
+  // This script is correctly applying the animation, just make sure 'dominantColor' is correctly formatted
   document.addEventListener('DOMContentLoaded', function() {
     console.log('Redirecting to:', "{{{redirectUrl}}}");
     setTimeout(() => {
       window.location.href = "{{{redirectUrl}}}";
-    }, 1000);
+    }, 1000); // Adjust timing as needed
   });
+
 </script>
 
 
