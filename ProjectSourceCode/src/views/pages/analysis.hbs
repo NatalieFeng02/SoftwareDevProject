@@ -7,7 +7,11 @@
       <h2 class="font-weight-bold" style="font-size: 48px;">{{title}}</h2>
       <p class="font-italic" style="font-size: 24px;">{{artist}}</p>
       <p style="font-size: 18px;">{{album}}</p>
-      <button class="btn btn-dark mt-3 background-button" data-title="{{title}}" data-artist="{{artist}}" data-album="{{album}}">Background</button>
+      <button class="btn btn-dark mt-3 background-button" 
+        data-title="{{title}}" 
+        data-artist="{{artist}}" 
+        data-album="{{album}}"
+        data-album-cover="{{albumCover}}">Background</button>
     </div>
     <div id="spotify-embed">
       <!-- Spotify Embed Placeholder -->
@@ -169,25 +173,23 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Select the button by its class
-  const backgroundButton = document.querySelector('.background-button');
+    const backgroundButton = document.querySelector('.background-button');
+    
+    backgroundButton.addEventListener('click', function() {
+        const title = encodeURIComponent(this.getAttribute('data-title'));
+        const artist = encodeURIComponent(this.getAttribute('data-artist'));
+        const album = encodeURIComponent(this.getAttribute('data-album'));
+        const albumCover = encodeURIComponent(this.getAttribute('data-album-cover'));
+        
+        // Construct the URL for the /background route including all necessary parameters
+        const backgroundUrl = `/background?title=${title}&artist=${artist}&album=${album}&albumCover=${albumCover}`;
 
-  // Add click event listener to the button
-  backgroundButton.addEventListener('click', function() {
-    // Retrieve data attributes
-    const title = encodeURIComponent(this.getAttribute('data-title'));
-    const artist = encodeURIComponent(this.getAttribute('data-artist'));
-    const album = encodeURIComponent(this.getAttribute('data-album'));
+        // Now construct the loading URL, directing it to the /background route through /loading
+        const loadingUrlBackground = `/loading?redirectUrl=${encodeURIComponent(backgroundUrl)}`;
 
-    // Construct the URL for the background page with query parameters
-    const backgroundUrl = `/background?title=${title}&artist=${artist}&album=${album}`;
-
-    // Construct the loading URL with the background URL as the redirectUrl parameter
-    const loadingUrl = `/loading?redirectUrl=${encodeURIComponent(backgroundUrl)}`;
-
-    // Navigate to the loading page, which will then redirect to the background page
-    window.location.href = loadingUrl;
-  });
+        // Redirect to the /loading route, which will then redirect to /background
+        window.location.href = loadingUrlBackground;
+    });
 });
 
 </script>

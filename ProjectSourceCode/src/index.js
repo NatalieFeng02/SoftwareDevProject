@@ -448,7 +448,8 @@ app.get('/analysis', async (req, res) => {
       artist: decodeURIComponent(artist),
       album: decodeURIComponent(req.query.album),
       analysisResults, // Pass the array of lyrics and analyses
-      spotifyUri 
+      spotifyUri,
+      albumCover: req.query.albumCover
     });
   } catch (error) {
     console.error('Error:', error);
@@ -456,6 +457,7 @@ app.get('/analysis', async (req, res) => {
       title: decodeURIComponent(title),
       artist: decodeURIComponent(artist),
       album: decodeURIComponent(req.query.album),
+      albumCover: req.query.albumCover,
       error: `An error occurred: ${error.message}`,
       analysisResults: [] // Ensure the template can handle an empty array
     });
@@ -673,23 +675,26 @@ app.get('/loading', async (req, res) => {
   console.log('Redirect URL:', redirectUrl);
 
   const decodedRedirectUrl = decodeURIComponent(redirectUrl);
-
   const urlObj = new URL(decodedRedirectUrl, `http://${req.headers.host}`);
   const albumCover = urlObj.searchParams.get('albumCover');
   console.log('Album Cover:', albumCover);
 
   try {
-    // Get the dominant color asynchronously
     const dominantColor = await getDominantColor(albumCover);
     console.log('Dominant Color:', dominantColor);
 
-    // Render the loading page with albumCover and dominantColor
-    res.render('loading', { redirectUrl, albumCover, dominantColor });
+    // If redirectUrl changes or is adjusted, ensure albumCover is included
+    let finalRedirectUrl = urlObj.toString();
+    // Example: finalRedirectUrl could be modified here based on some logic
+
+    // Render the loading page with albumCover and dominantColor, and pass the finalRedirectUrl
+    res.render('loading', { redirectUrl: finalRedirectUrl, albumCover, dominantColor });
   } catch (error) {
     console.error('Error processing album cover:', error);
     res.status(500).send('Failed to process album cover.');
   }
 });
+
 
 //Render forgotpassword page
 app.get('/forgotpassword', (req, res) => {
