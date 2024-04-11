@@ -665,7 +665,7 @@ const getDominantColor = async (albumCover) => {
   return new Promise((resolve, reject) => {
     const vibrant = new Vibrant(albumCover, {
       colorCount: 256, // Adjusted for broader analysis
-      quality: 1, // Lower quality might help group similar colors
+      quality: 10, // Lower quality might help group similar colors
       // Additional configurations could be added here
     });
 
@@ -680,10 +680,12 @@ const getDominantColor = async (albumCover) => {
       // Convert hex to RGB
       const rgb = hexToRgb(dominantColor);
 
-      // Check if the color is grayscale
-      if (rgb && rgb.r === rgb.g && rgb.g === rgb.b) {
-        // If it's grayscale, change the dominant color to light grey
-        dominantColor = '#d3d3d3';
+      // Check if the color is close to grayscale
+      const max = Math.max(rgb.r, rgb.g, rgb.b);
+      const min = Math.min(rgb.r, rgb.g, rgb.b);
+      if (max - min <= 15) {  // Adjust this threshold as needed
+        // If it's close to grayscale, change the dominant color to white
+        dominantColor = '#d3d3d3';  // You mentioned light grey earlier; correcting that here
       }
 
       resolve(dominantColor);
@@ -698,6 +700,7 @@ function hexToRgb(hex) {
   const b = parseInt(hex.slice(5, 7), 16);
   return { r, g, b };
 }
+
 
 app.get('/loading', async (req, res) => {
   const { redirectUrl } = req.query;
