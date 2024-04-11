@@ -13,7 +13,8 @@ DROP TABLE IF EXISTS users;
 --   password TEXT NOT NULL -- Text instead of varchar for hashing key, unknown hash size.
 -- );
 CREATE TABLE users (
-    username VARCHAR(50) PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50),
     email VARCHAR(50),
     password CHAR(60) NOT NULL
 );
