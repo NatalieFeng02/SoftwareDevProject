@@ -410,7 +410,7 @@ app.get('/analysis', async (req, res) => {
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          "model": "gpt-3.5-turbo-0125", //gpt-4-0125-preview
+          "model": "gpt-3.5-turbo-0125", //gpt-4-0125-preview or gpt-3.5-turbo-0125
           "messages": [
             {
               "role": "system",
@@ -549,7 +549,7 @@ app.get('/background', async (req, res) => {
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo-0125", //gpt-4-0125-preview
+          model: "gpt-3.5-turbo-0125", //gpt-4-0125-preview or gpt-3.5-turbo-0125
           messages,
           temperature: 0.5,
           max_tokens: 1200
@@ -665,7 +665,7 @@ const getDominantColor = async (albumCover) => {
   return new Promise((resolve, reject) => {
     const vibrant = new Vibrant(albumCover, {
       colorCount: 256, // Adjusted for broader analysis
-      quality: 10, // Lower quality might help group similar colors
+      quality: 50, // Lower quality might help group similar colors
       // Additional configurations could be added here
     });
 
