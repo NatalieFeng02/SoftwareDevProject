@@ -370,7 +370,7 @@ function cleanArtist(artist) {
 }
 
 app.get('/analysis', async (req, res) => {
-  const { title, artist, } = req.query;
+  const { title, artist, albumCover} = req.query;
   console.log("Query Parameters:", req.query);
   if (!title || !artist) {
     return res.status(400).send('Song title and artist are required');
@@ -382,6 +382,10 @@ app.get('/analysis', async (req, res) => {
   console.log(`Song: "${title}" by "${artist}"`);
 
   try {
+    //gets dominant color for album
+    const dominantColor = await getDominantColor(albumCover);
+    console.log('Dominant Color:', dominantColor);
+
     const lyricsResponse = await fetch(apiUrl);
     if (!lyricsResponse.ok) throw new Error(`Lyrics fetch failed: ${lyricsResponse.statusText}`);
     
@@ -449,7 +453,8 @@ app.get('/analysis', async (req, res) => {
       album: decodeURIComponent(req.query.album),
       analysisResults, // Pass the array of lyrics and analyses
       spotifyUri,
-      albumCover: req.query.albumCover
+      albumCover,
+      dominantColor
     });
   } catch (error) {
     console.error('Error:', error);
@@ -457,9 +462,10 @@ app.get('/analysis', async (req, res) => {
       title: decodeURIComponent(title),
       artist: decodeURIComponent(artist),
       album: decodeURIComponent(req.query.album),
-      albumCover: req.query.albumCover,
+      albumCover,
       error: `An error occurred: ${error.message}`,
-      analysisResults: [] // Ensure the template can handle an empty array
+      analysisResults: [], // Ensure the template can handle an empty array
+      dominantColor
     });
   }
 });
@@ -501,7 +507,7 @@ spotifyApi.clientCredentialsGrant().then(data => {
 
 // Route to serve the background page
 app.get('/background', async (req, res) => {
-  const { title, artist, album } = req.query;
+  const { title, artist, album, albumCover} = req.query;
 
   const cleanedTitle = cleanTitle(decodeURIComponent(title));
   const cleanedArtist = cleanArtist(decodeURIComponent(artist));
@@ -521,6 +527,9 @@ app.get('/background', async (req, res) => {
   let backgroundResults = [];
 
   try {
+    const dominantColor = await getDominantColor(albumCover);
+    console.log('Dominant Color:', dominantColor);
+
     const coverUrl = await fetchSpotifyAlbumCovers(cleanedTitle, cleanedArtist);
     const credits = await fetchSongCredits(cleanedTitle, cleanedArtist);
 
@@ -568,13 +577,15 @@ app.get('/background', async (req, res) => {
       album: decodeURIComponent(album),
       cover: coverUrl,
       credits: credits,
-      backgroundResults
+      backgroundResults,
+      dominantColor
     });
   } catch (error) {
     console.error('Catch error:', error);
     res.render('background', {
       error: `An error occurred: ${error.message}`,
-      backgroundResults: [] // Ensure the template can handle an empty array
+      backgroundResults: [], // Ensure the template can handle an empty array
+      dominantColor
     });
   }
 });
@@ -650,25 +661,43 @@ function getCreditInfo(creditDetail) {
   return creditDetail.startsWith("Example") ? "-" : creditDetail;
 }
 
-// Consolidated loading route
 const getDominantColor = async (albumCover) => {
   return new Promise((resolve, reject) => {
-    // Create a Vibrant instance from the image URL
-    const vibrant = new Vibrant(albumCover);
-    
-    // Extract the palette asynchronously
+    const vibrant = new Vibrant(albumCover, {
+      colorCount: 256, // Adjusted for broader analysis
+      quality: 1, // Lower quality might help group similar colors
+      // Additional configurations could be added here
+    });
+
     vibrant.getPalette((err, palette) => {
       if (err) {
         reject(err);
         return;
       }
 
-      // Get the dominant color from the palette
-      const dominantColor = palette.Vibrant.getHex();
+      let dominantColor = palette.Vibrant.getHex();
+
+      // Convert hex to RGB
+      const rgb = hexToRgb(dominantColor);
+
+      // Check if the color is grayscale
+      if (rgb && rgb.r === rgb.g && rgb.g === rgb.b) {
+        // If it's grayscale, change the dominant color to light grey
+        dominantColor = '#d3d3d3';
+      }
+
       resolve(dominantColor);
     });
   });
 };
+
+// Helper function to convert hex color to RGB
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return { r, g, b };
+}
 
 app.get('/loading', async (req, res) => {
   const { redirectUrl } = req.query;
