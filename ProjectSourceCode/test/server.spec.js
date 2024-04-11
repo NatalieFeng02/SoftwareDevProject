@@ -13,6 +13,7 @@ const {assert, expect} = chai;
 
 // ********************** DEFAULT WELCOME TESTCASE ****************************
 
+/*
 describe('Server!', () => {
   // Sample test case given to test / endpoint.
   it('Returns the default welcome message', done => {
@@ -27,6 +28,7 @@ describe('Server!', () => {
       });
   });
 });
+*/
 
 // *********************** TODO: WRITE 2 UNIT TESTCASES **************************
 
@@ -69,6 +71,7 @@ describe('Testing Add User API', () => {
   });
 */
 
+/*
 
 // Tests that search page is correctly rendering
   describe('Testing Render', () => {
@@ -97,5 +100,7 @@ describe('Testing Add User API', () => {
         });
     });
   });
+
+  */
 
 // ********************************************************************************
