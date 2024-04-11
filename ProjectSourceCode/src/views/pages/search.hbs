@@ -8,22 +8,145 @@
       <form id="search-form" class="input-group" action="/results" method="GET">
         <input type="text" class="form-control" name="searchQuery" class="form-control" placeholder="Search by Artist, Song, or Album">
         <div class="input-group-append">
-         <button type="submit" class="btn btn-outline-secondary">
-          <i class="fas fa-search"></i>
-         </button>
-
+          <button type="submit" class="btn btn-outline-secondary">
+            <i class="fas fa-search"></i>
+          </button>
         </div>
       </form>
     </div>
   </div>
+  <div id="search-for" class="search-container">
+  <span id="label" class="label">Search for:</span> <span id="random-song-info"></span>
+  </div>
 </div>
+
 
 {{> footer}}
 
 <style>
-  #search-logo{
+  #search-logo {
     font-family: 'DieNasty', sans-serif;
     font-size: 52px;
   }
+
+  .fade-in {
+    animation: fadeIn ease 1s;
+    animation-fill-mode: forwards;
+  }
+  
+  .fade-out {
+    animation: fadeOut ease 1s;
+    animation-fill-mode: forwards;
+  }
+  
+  @keyframes fadeIn {
+    0% {opacity:0;}
+    100% {opacity:1;}
+  }
+
+  @keyframes fadeOut {
+    0% {opacity:1;}
+    100% {opacity:0;}
+  }
+
+.search-container {
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center items horizontally */
+    justify-content: center; /* Center items vertically */
+    font-size: 24px;
+    font-family: 'Inter', sans-serif;
+    margin-bottom: 20px;
+    margin-top: 60px;
+    width: 100%;
+  }
+
+  .search-container .label {
+    text-align: center; /* Center the text horizontally */
+    margin-bottom: 10px; /* Optional: space between the label and dynamic content */
+  }
+
+  #random-song-info {
+    font-weight: 200;
+    /* Keep margin-left if you want space between "Search for:" and content */
+    /* Otherwise, remove it if you want them to be close together */
+    text-align: center; /* Center the dynamic content */
+    display: block; /* Use block to allow text-align to work */
+    min-height: 20px; /* Allocate space even when there's no content */
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-style: italic;
+    font-weight: 100;
+  }
+
+  .label {
+    font-weight: 700;
+  }
 </style>
 
+
+
+
+<script type="application/json" id="playlist-data">
+  {{{playlistData}}}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const dataElement = document.getElementById('playlist-data');
+  const playlistData = JSON.parse(dataElement.textContent);
+  const displayElement = document.getElementById('random-song-info');
+  const labelElement = document.getElementById('label'); // Get the label element
+  
+  function applyFadeIn() {
+    labelElement.classList.add('fade-in');
+    displayElement.classList.add('fade-in');
+  }
+
+  function applyFadeOut() {
+    labelElement.classList.remove('fade-in');
+    displayElement.classList.remove('fade-in');
+    labelElement.classList.add('fade-out');
+    displayElement.classList.add('fade-out');
+  }
+  
+  if (playlistData && playlistData.length > 0) {
+    rotateInfo(playlistData);
+  } else {
+    displayElement.textContent = 'No data available';
+    labelElement.classList.add('fade-out');
+  }
+
+  function rotateInfo(tracks) {
+    let currentIndex = 0;
+
+    function updateDisplay() {
+      const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+      const displayTypes = ['title', 'artist', 'album'];
+      const displayType = displayTypes[Math.floor(Math.random() * displayTypes.length)];
+
+      // Clear previous fade-out, if any
+      labelElement.classList.remove('fade-out');
+      displayElement.classList.remove('fade-out');
+
+      // Set new content and start fade-in
+      displayElement.innerHTML = randomTrack[displayType];
+      applyFadeIn();
+
+      // Set timeout for fade-out
+      setTimeout(applyFadeOut, 3000); // 3 seconds to match visible time
+    }
+
+    // Initial display update
+    updateDisplay();
+
+    // Interval to update the display
+    setInterval(() => {
+      // Ensure fade-out is finished before updating
+      if (!labelElement.classList.contains('fade-in') && !displayElement.classList.contains('fade-in')) {
+        updateDisplay();
+      }
+    }, 6000); // Interval to match the sum of animation times and visible time
+  }
+});
+</script>

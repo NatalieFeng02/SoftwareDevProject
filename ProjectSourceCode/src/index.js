@@ -128,9 +128,63 @@ app.get('/login', (req, res) => {
   res.render('login');
 });
 
-app.get('/search', (req, res) => {
-  res.render('search');
+app.get('/search', async (req, res) => {
+  try {
+    const playlistData = await fetchAllPlaylistTracks('1DPLMFnJ3F6iOkDmlEzggq');
+    console.log(playlistData); // Log the data to see what's being passed
+    res.render('search', { playlistData: JSON.stringify(playlistData) });
+  } catch (error) {
+    console.error('Failed to fetch playlist data:', error);
+    res.render('search', { playlistData: JSON.stringify([]) }); // Send empty array on error
+  }
 });
+
+async function fetchAllPlaylistTracks(playlistId) {
+  const accessToken = await getSpotifyAccessToken();
+  let tracksData = [];
+  let url = `https://api.spotify.com/v1/playlists/${playlistId}/tracks`;
+
+  while (url && tracksData.length < 50) {
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch playlist data');
+    
+    const data = await response.json();
+    const batchTracksData = data.items.map(item => ({
+      title: item.track.name,
+      artist: item.track.artists.map(artist => artist.name).join(', '),
+      album: item.track.album.name,
+    }));
+
+    // Concatenate and truncate to 100 if the addition goes over
+    tracksData = tracksData.concat(batchTracksData);
+    if (tracksData.length > 100) {
+      tracksData = tracksData.slice(0, 50);
+    }
+
+    url = tracksData.length < 50 ? data.next : null; // Only fetch more if we have less than 100
+  }
+  
+  // Shuffle the array to get a random selection of tracks
+  tracksData = shuffleArray(tracksData);
+
+  return tracksData;
+}
+
+// Utility function to shuffle an array
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+
 
 // MODIFY LATER
 
