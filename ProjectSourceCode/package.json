@@ -6,7 +6,7 @@
   "scripts": {
     "prestart": "npm install",
     "start": "nodemon ./src/index.js",
-    "test": "mocha",
+    "test": "mocha --timeout 2000",
     "testandrun": "npm run prestart && npm run test && npm start"
   },
   "keywords": [],

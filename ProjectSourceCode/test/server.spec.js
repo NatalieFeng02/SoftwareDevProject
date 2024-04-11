@@ -40,32 +40,41 @@ describe('Server!', () => {
 // and expects the API to return a status of 200 along with the "Success" message.
 
 
-describe('Testing Add User API', () => {
-    it('positive : /create', done => {
+describe('Testing register and preexisting username', () => {
+
+    before(done => {
       chai
         .request(server)
         .post('/register')
-        .send({username: 'john116', password: 'ken100'})
+        .send({username: 'testuser2', email: 'test2@colorado.edu', password: 'test456'})
         .end((err, res) => {
           expect(res).to.have.status(200);
           expect(res.body.message).to.equals('Registered');
           done();
         });
     });
-  });
 
-  describe('Username already existing', () => {
-    it('negative : /create checking existing username', done => {
+    it('negative : /register checking existing username', done => {
       chai
         .request(server)
         .post('/register')
-        .send({username: 'john116', password: 'ken100'})
+        .send({username: 'testuser2', email: 'test2@colorado.edu', password: 'test456'})
         .end((err, res) => {
           expect(res).to.have.status(200);
           expect(res.body.message).to.equals('Account already exists');
           done();
         });
     });
+
+    after(done => {
+      chai
+        .request(server)
+        .delete('/users')
+        .send({username: 'testuser2'})
+        .end((err, res) => {
+          done();
+        })
+    })
   });
 
 

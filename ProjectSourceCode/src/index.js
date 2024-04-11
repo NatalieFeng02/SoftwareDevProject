@@ -151,20 +151,38 @@ app.post('/login', async (req, res) => {
 // MODIFY LATER
 
 app.post('/register', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, email, password } = req.body;
 
- // const hash = await bcrypt.hash(password, 10);
+  const hash = await bcrypt.hash(password, 10);
 
-  var insertUser = `INSERT INTO users(username, password) VALUES ($1, $2)`;
+  var insertUser = `INSERT INTO users(username, email, password) VALUES ($1, $2, $3)`;
 
   try{
-    let response = await db.query(insertUser, [username, password]);
+    let response = await db.query(insertUser, [username, email, password]);
     res.json({status: 'success', message: 'Registered'});
   }
   catch(err){
     res.json({status: 'success', message: 'Account already exists'})
   }
 
+});
+
+app.delete('/users', async (req, res) => {
+  const { username } = req.body;
+
+  var deleteUser = `DELETE FROM users WHERE username = $1`;
+
+  try {
+    let response = await db.query(deleteUser, [username]);
+    if (response.rowCount > 0) {
+      res.json({status: 'success', message: 'User deleted successfully'});
+    } else {
+      res.json({status: 'error', message: 'User not found'});
+    }
+  }
+  catch (err) {
+    res.json({status: 'error', message: 'Error deleting user'});
+  }
 });
 
 // MODIFY LATER ^^^

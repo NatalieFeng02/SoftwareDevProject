@@ -14,8 +14,8 @@ DROP TABLE IF EXISTS users;
 -- );
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(50),
-    email VARCHAR(50),
+    username VARCHAR(50) UNIQUE,
+    email VARCHAR(50) NOT NULL,
     password CHAR(60) NOT NULL
 );
 
