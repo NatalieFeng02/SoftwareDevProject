@@ -424,6 +424,7 @@ function cleanArtist(artist) {
 }
 
 app.get('/analysis', async (req, res) => {
+  const inNav = true;
   const { title, artist, albumCover} = req.query;
   console.log("Query Parameters:", req.query);
   if (!title || !artist) {
@@ -508,7 +509,8 @@ app.get('/analysis', async (req, res) => {
       analysisResults, // Pass the array of lyrics and analyses
       spotifyUri,
       albumCover,
-      dominantColor
+      dominantColor,
+      inNav
     });
   } catch (error) {
     console.error('Error:', error);
@@ -519,7 +521,8 @@ app.get('/analysis', async (req, res) => {
       albumCover,
       error: `An error occurred: ${error.message}`,
       analysisResults: [], // Ensure the template can handle an empty array
-      dominantColor
+      dominantColor,
+      inNav
     });
   }
 });

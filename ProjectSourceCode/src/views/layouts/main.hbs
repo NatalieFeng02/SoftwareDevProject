@@ -28,7 +28,11 @@
         {{> header}} <!-- This includes your header partial -->
     </header>
 
-
+    <nav>
+        {{#if inNav}}
+            {{> in_nav dominantColor=dominantColor }}
+        {{/if}}
+    </nav>
     <!-- Main content -->
     <main role="main" class="container">
         {{{body}}} <!-- Your page content gets inserted here -->

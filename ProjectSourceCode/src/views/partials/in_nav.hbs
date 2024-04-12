@@ -1,36 +1,33 @@
 <header>
- <nav class="navbar navbar-expand-sm border-bottom" style="background-color: {{dominantColor}};">
+  <nav class="navbar navbar-expand-sm border-bottom" style="background-color: {{dominantColor}};" id="navbar-full">
+    <div class="container-fluid"> <!-- Single container-fluid for full width -->
+      <a href="/" class="navbar-brand">
+        <h1 class="display-4" id="logo">LyricSense</h1>
+      </a>
 
-   <a href="/" class="navbar-brand">
-  <h1 class="display-4" id="logo">LyricSense</h1>
-   </a>
-
-   <div class="container">
-
-     <div class="collapse navbar-collapse" id="navbar-collapse">
-       <ul class="navbar-nav me-auto">
-         <li class="nav-item">
-
+      <div class="collapse navbar-collapse" id="navbar-collapse">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
             <a class="nav-link" href="/search">Search</a>
-         </li>
-       </ul>
+          </li>
+        </ul>
 
-       <div class="dropdown show">
-         <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-           {{username}}
-         </a>
+        <div class="dropdown show">
+          <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {{username}}
+          </a>
 
-         <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-           <a class="nav-link" href="/accountinformation">Account</a>
-           <a class="nav-link" href="#">Saved Analyses</a>
-           <a class="nav-link" href="/logout">Logout</a>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+            <a class="nav-link" href="/accountinformation">Account</a>
+            <a class="nav-link" href="#">Saved Analyses</a>
+            <a class="nav-link" href="/logout">Logout</a>
+          </div>
         </div>
-       </div>
-     </div>
-   </div>
-   
- </nav>
+      </div>
+    </div>
+  </nav>
 </header>
+
 
 <style>
   /*
@@ -50,4 +47,17 @@
     padding-top: 0.35; 
     padding-bottom: 0.35; 
   }
+
+nav.navbar {
+    width: 100% !important; /* Ensures the navbar is full width */
+    margin-right: 0 !important; /* Removes any right margin */
+    margin-left: 0 !important; /* Removes any left margin */
+}
+
+#navbar {
+    width: 100% !important; /* Ensures the navbar is full width */
+    margin-right: 0 !important; /* Removes any right margin */
+    margin-left: 0 !important; /* Removes any left margin */
+}
+
 </style>
