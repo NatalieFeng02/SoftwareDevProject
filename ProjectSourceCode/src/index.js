@@ -565,6 +565,7 @@ spotifyApi.clientCredentialsGrant().then(data => {
 // Route to serve the background page
 app.get('/background', async (req, res) => {
   const { title, artist, album, albumCover} = req.query;
+  const inNav = true;
 
   const cleanedTitle = cleanTitle(decodeURIComponent(title));
   const cleanedArtist = cleanArtist(decodeURIComponent(artist));
@@ -635,14 +636,16 @@ app.get('/background', async (req, res) => {
       cover: coverUrl,
       credits: credits,
       backgroundResults,
-      dominantColor
+      dominantColor,
+      inNav
     });
   } catch (error) {
     console.error('Catch error:', error);
     res.render('background', {
       error: `An error occurred: ${error.message}`,
       backgroundResults: [], // Ensure the template can handle an empty array
-      dominantColor
+      dominantColor,
+      inNav
     });
   }
 });
