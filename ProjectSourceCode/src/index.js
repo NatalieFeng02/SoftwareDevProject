@@ -201,9 +201,9 @@ function shuffleArray(array) {
 // app.post('/register', async (req, res) => {
 //   const { username, password } = req.body;
 
-//  // const hash = await bcrypt.hash(password, 10);
+ // const hash = await bcrypt.hash(password, 10);
 
-//   var insertUser = `INSERT INTO users(username, password) VALUES ($1, $2)`;
+  // var insertUser = `INSERT INTO users(username, password) VALUES ($1, $2)`;
 
 //   try{
 //     let response = await db.query(insertUser, [username, password]);
@@ -292,7 +292,7 @@ app.post("/login", async (req, res) => {
 
 
 app.get("/", (req, res) => {
-  res.redirect("/login");
+  res.redirect("login");
 });
 
 app.get("/create", (req, res) => {
@@ -837,7 +837,7 @@ app.get('/resetsuccess', (req, res) => {
 
 const auth = (req, res, next) => {
   if (!req.session.user) {
-    return res.redirect('login');
+    return res.redirect("login");
   }
   next();
 };
@@ -868,4 +868,3 @@ app.get('/accountinformation', (req, res) => {
     email: req.session.user.email,
   });
 });
-
