@@ -13,7 +13,6 @@ const {assert, expect} = chai;
 
 // ********************** DEFAULT WELCOME TESTCASE ****************************
 
-/*
 describe('Server!', () => {
   // Sample test case given to test / endpoint.
   it('Returns the default welcome message', done => {
@@ -28,7 +27,6 @@ describe('Server!', () => {
       });
   });
 });
-*/
 
 // *********************** TODO: WRITE 2 UNIT TESTCASES **************************
 
@@ -41,37 +39,44 @@ describe('Server!', () => {
 // Explanation: The testcase will call the /add_user API with the following input
 // and expects the API to return a status of 200 along with the "Success" message.
 
-/*
-describe('Testing Add User API', () => {
-    it('positive : /create', done => {
+
+describe('Testing register and preexisting username', () => {
+
+    before(done => {
       chai
         .request(server)
         .post('/register')
-        .send({username: 'john116', password: 'ken100'})
+        .send({username: 'testuser4', email: 'test2@colorado.edu', password: 'test456'})
         .end((err, res) => {
           expect(res).to.have.status(200);
           expect(res.body.message).to.equals('Registered');
           done();
         });
     });
-  });
 
-  describe('Username already existing', () => {
-    it('negative : /create checking existing username', done => {
+    it('negative : /register checking existing username', done => {
       chai
         .request(server)
         .post('/register')
-        .send({username: 'john116', password: 'ken100'})
+        .send({username: 'testuser4', email: 'test2@colorado.edu', password: 'test456'})
         .end((err, res) => {
           expect(res).to.have.status(200);
           expect(res.body.message).to.equals('Account already exists');
           done();
         });
     });
-  });
-*/
 
-/*
+    after(done => {
+      chai
+        .request(server)
+        .delete('/users')
+        .send({username: 'testuser4'})
+        .end((err, res) => {
+          done();
+        })
+    })
+  });
+
 
 // Tests that search page is correctly rendering
   describe('Testing Render', () => {
@@ -87,7 +92,7 @@ describe('Testing Add User API', () => {
         });
     });
   });
-
+/*
   describe('Nonexistent Page', () => {
     it('negative: nonexistent page should throw a 404 error', done => {
       chai
@@ -95,12 +100,10 @@ describe('Testing Add User API', () => {
         .get('/testDemo')
         .end((err, res) => {
           res.should.have.status(404); // Expecting a success status code
-          res.should.be.html; // Expecting a HTML response
+          res.text.should.equal('Sorry, that page does not exist!'); // Expecting a HTML response
           done();
         });
     });
   });
-
-  */
-
+*/
 // ********************************************************************************
