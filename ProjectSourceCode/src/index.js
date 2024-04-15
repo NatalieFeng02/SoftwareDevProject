@@ -86,7 +86,7 @@ app.get('/welcome', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.render('home'); // This assumes that you have a 'home.hbs' file in your views/pages directory
+  res.render('home'); 
 });
 
 async function fetchAlbumCovers() {
@@ -630,7 +630,7 @@ app.get('/background', async (req, res) => {
       .then(response => response.json())
       .then(json => {
         if (json.error) {
-          console.error('GPT-3 API error:', json.error);
+          console.error('GPT API error:', json.error);
         }
         const content = json.choices && json.choices.length > 0 && json.choices[0].message ? json.choices[0].message.content : 'No content available.';
         return { title: sectionInfo.title, content: content };
