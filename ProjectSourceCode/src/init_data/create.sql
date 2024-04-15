@@ -1,10 +1,10 @@
 -- DROPS at top in reverse order, apparently can help prevent foreign key issues when deleting rows when in reverse order
-DROP TABLE IF EXISTS analysis_to_users;
-DROP TABLE IF EXISTS analysis;
-DROP TABLE IF EXISTS songs_to_lyrics;
-DROP TABLE IF EXISTS lyrics;
-DROP TABLE IF EXISTS songs;
-DROP TABLE IF EXISTS users;
+--DROP TABLE IF EXISTS analysis_to_users;
+--/DROP TABLE IF EXISTS analysis;
+--DROP TABLE IF EXISTS songs_to_lyrics;
+--DROP TABLE IF EXISTS lyrics;
+--DROP TABLE IF EXISTS songs;
+--DROP TABLE IF EXISTS users;
 
 -- CREATE TABLE users (
 --   id SERIAL PRIMARY KEY,

@@ -71,6 +71,16 @@ const dbConfig = {
 const db = pgp(dbConfig);
 module.exports = db;
 
+// test your database
+db.connect()
+  .then(obj => {
+    console.log('Database connection successful'); // you can view this message in the docker compose logs
+    obj.done(); // success, release the connection;
+  })
+  .catch(error => {
+    console.log('ERROR:', error.message || error);
+  });
+
 app.get('/welcome', (req, res) => {
   res.json({status: 'success', message: 'Welcome!'});
 });
@@ -188,22 +198,24 @@ function shuffleArray(array) {
 
 // MODIFY LATER
 
-app.post('/register', async (req, res) => {
-  const { username, password } = req.body;
+// app.post('/register', async (req, res) => {
+//   const { username, password } = req.body;
 
- // const hash = await bcrypt.hash(password, 10);
+//  // const hash = await bcrypt.hash(password, 10);
 
-  var insertUser = `INSERT INTO users(username, password) VALUES ($1, $2)`;
+//   var insertUser = `INSERT INTO users(username, password) VALUES ($1, $2)`;
 
-  try{
-    let response = await db.query(insertUser, [username, password]);
-    res.json({status: 'success', message: 'Registered'});
-  }
-  catch(err){
-    res.json({status: 'success', message: 'Account already exists'})
-  }
+//   try{
+//     let response = await db.query(insertUser, [username, password]);
+//     res.render('home');
+//     //res.json({status: 'success', message: 'Registered'});
+//   }
+//   catch(err){
+//     //res.json({status: 'success', message: 'Account already exists'})
+//     res.render('login');
+//   }
 
-});
+// });
 
 // app.get("/login", (req, res) => {
 //   res.render("login");
@@ -247,8 +259,8 @@ app.post("/login", async (req, res) => {
       const passwordMatch = await bcrypt.compare(password, user.password);
 
       if (passwordMatch) {
-        // req.session.user = user;
-        // await req.session.save(); // Ensure session saving is awaited
+        req.session.user = user;
+        await req.session.save(); // Ensure session saving is awaited
         return res.redirect("/");
       } else {
         return res.render("login", {
@@ -282,9 +294,11 @@ app.post("/login", async (req, res) => {
 app.get("/", (req, res) => {
   res.redirect("/login");
 });
+
 app.get("/create", (req, res) => {
   res.render("create");
 });
+
 app.post("/create", async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -296,10 +310,10 @@ app.post("/create", async (req, res) => {
     }
     const hash = await bcrypt.hash(password, 10);
     await db.none("INSERT INTO users(username, email, password) VALUES($1, $2, $3)", [username, email, hash]);
-    res.redirect("/login");
+    res.redirect('login');
   } catch (error) {
     console.error("Error during registration:", error);
-    res.render("create", {
+    res.render('create', {
       message: "Registration failed. Please try again.",
     });
   }
@@ -794,25 +808,20 @@ app.get('/forgotpassword', (req, res) => {
 });
 
 //Reset Password
-app.put('/forgotpassword', function (req, res) {
-  const query =
-    'update users set password = $1 where username = $2 and email = $3 returning * ;';
-
-  db.any(query, [req.body.password, req.body.username, req.body.email])
-    // if query execution succeeds
-    .then(function (data) {
-        if(data.length > 0){
-          res.render('resetsuccess');
-        }
-        else{
-          res.render('accountnotfound');
-        }
-    })
-    // if query execution fails
-    // send error message
-    .catch(function (err) {
-      console.error('Error updating password:', err);
-    });
+app.post('/forgotpassword', async (req, res) => {
+    try {
+      const { username, email, password } = req.body;
+      const existingUser = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [username]);
+      if (existingUser) {
+        
+      }
+      const hash = await bcrypt.hash(password, 10);
+      await db.any("update users set password = $1 where username = $2 and email = $3 returning * ;", [hash, username, email]);
+      res.redirect('resetsuccess');
+    } catch (error) {
+      console.error("Error during registration:", error);
+      res.render('accountnotfound');
+    }
 });
 
 //Render accountnotfound page
@@ -828,7 +837,7 @@ app.get('/resetsuccess', (req, res) => {
 
 const auth = (req, res, next) => {
   if (!req.session.user) {
-    return res.redirect("/login");
+    return res.redirect('login');
   }
   next();
 };
