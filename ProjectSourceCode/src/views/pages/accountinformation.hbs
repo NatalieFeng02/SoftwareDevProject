@@ -2,34 +2,22 @@
 {{> in_nav}}
 
 <div class="container text-center">
-  <div class="row">
-    <div class="col">
-      
-    </div>
-    <div class="col">
-      Account Information
-    </div>
-    <div class="col">
-      
-    </div>
-  </div>
+  <h2 class="my-4">Account Information</h2> 
 </div>
 
-<table class="table">
-  <tbody>
-    <tr>
-      <th scope="row">Name</th>
-      <td>{{username}}</td>
-    </tr>
-    <tr>
-      <th scope="row">Email</th>
-      <td>{{email}}</td>
-    </tr>
-    {{!-- <tr>
-      <th scope="row">Total Analyses</th>
-      <td> </td>
-    </tr> --}}
-  </tbody>
-</table>
+<div class="container">
+  <table class="table table-responsive">
+    <tbody>
+      <tr>
+        <th scope="row">Name</th>
+        <td>{{username}}</td>
+      </tr>
+      <tr>
+        <th scope="row">Email</th>
+        <td>{{email}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 {{> footer}}
