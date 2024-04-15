@@ -4,7 +4,7 @@
 -- \c music_db;
 -- \l \dt \d table_name
 
-NSERT INTO users
+INSERT INTO users
     (id, username, email, password)
 VALUES
     (1, 'testuser', 'test@colorado.edu', 'test123') returning *;
