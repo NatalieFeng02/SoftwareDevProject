@@ -680,6 +680,42 @@ app.get('/background', async (req, res) => {
   }
 });
 
+/*
+app.post('/save-analysis', async (req, res) => {
+  const {title, artist, analysisResults} = req.body;
+
+  const serializedAnalysis = JSON.stringify(analysisResults);
+  try{
+    const insertQuery = `INSERT INTO analysis(title, artist, def_analysis) VALUES($1, $2, $3)
+    ON CONFLICT (title, artist) DO UPDATE
+    SET def_analysis = EXCLUDED.def_analysis;
+    `;
+  await db.query(insertQuery, [title, artist, serializedAnalysis]);
+  res.json({status: 'success', message: 'Analysis saved successfully'});
+} catch (error) {
+  console.error('Error saving analysis, please try again', error);
+  res.status(500).json({status: 'error', message: 'Failed to save analysis'});
+};
+});
+
+app.post('/save-background', async (req, res) => {
+  const {title, artist, analysisResults} = req.body;
+
+  const serializedBackground = JSON.stringify(backgroundResults);
+  try{
+    const insertQuery = `INSERT INTO analysis(title, artist, hist_analysis) VALUES($1, $2, $3)
+    ON CONFLICT (title, artist) DO UPDATE
+    SET hist_analysis = EXCLUDED.hist_analysis;
+    `;
+  await db.query(insertQuery, [title, artist, serializedBackground]);
+  res.json({status: 'success', message: 'Background saved successfully'});
+} catch (error) {
+  console.error('Error saving background, please try again', error);
+  res.status(500).json({status: 'error', message: 'Failed to save background'});
+};
+});
+*/
+
 async function fetchSpotifyAlbumCovers(cleanedTitle, cleanedArtist) {
   try {
     // Use the Spotify API to search for the track using the cleaned title and artist
