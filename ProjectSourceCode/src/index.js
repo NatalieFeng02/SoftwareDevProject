@@ -139,9 +139,9 @@ app.get('/login', (req, res) => {
 
 app.get('/search', async (req, res) => {
   try {
-    const playlistData = await fetchAllPlaylistTracks('1DPLMFnJ3F6iOkDmlEzggq');
-    console.log(playlistData); // Log the data to see what's being passed
-    res.render('search', { playlistData: JSON.stringify(playlistData) });
+    const playlistData = await fetchAllPlaylistTracks('1DPLMFnJ3F6iOkDmlEzggq'); //fetches playlist for search suggestions
+    // Log the data to see what's being passed
+    res.render('search', { playlistData: JSON.stringify(playlistData) }); //renders playlist data for HTMl
   } catch (error) {
     console.error('Failed to fetch playlist data:', error);
     res.render('search', { playlistData: JSON.stringify([]) }); // Send empty array on error
@@ -163,7 +163,7 @@ async function fetchAllPlaylistTracks(playlistId) {
     if (!response.ok) throw new Error('Failed to fetch playlist data');
     
     const data = await response.json();
-    const batchTracksData = data.items.map(item => ({
+    const batchTracksData = data.items.map(item => ({ //Maps over data.items to create an array of simplified track objects that include only the title, artist(s), and album name.Maps over data.items to create an array of simplified track objects that include only the title, artist(s), and album name.
       title: item.track.name,
       artist: item.track.artists.map(artist => artist.name).join(', '),
       album: item.track.album.name,
@@ -172,7 +172,7 @@ async function fetchAllPlaylistTracks(playlistId) {
     // Concatenate and truncate to 100 if the addition goes over
     tracksData = tracksData.concat(batchTracksData);
     if (tracksData.length > 100) {
-      tracksData = tracksData.slice(0, 50);
+      tracksData = tracksData.slice(0, 50); //If the length exceeds 50 after addition, it slices the array to keep only the first 50 elements.
     }
 
     url = tracksData.length < 50 ? data.next : null; // Only fetch more if we have less than 100
@@ -184,7 +184,7 @@ async function fetchAllPlaylistTracks(playlistId) {
   return tracksData;
 }
 
-// Utility function to shuffle an array
+// Function to shuffle an array (Fisher-Yates shuffle)
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -337,11 +337,11 @@ app.post("/create", async (req, res) => {
 
 
 app.get('/results', async (req, res) => {
-  const searchQuery = req.query.searchQuery || '';
+  const searchQuery = req.query.searchQuery || ''; //collect search query
 
   try {
     const accessToken = await getSpotifyAccessToken();
-    const apiUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=50`;
+    const apiUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=50`; //constructs URL for sportify search API, track limit 50
     
     const response = await fetch(apiUrl, {
       method: 'GET',
@@ -352,6 +352,7 @@ app.get('/results', async (req, res) => {
 
     const data = await response.json();
 
+      //Maps through the items in the fetched data to create an array of song data, extracting the title, artist, album name, and the URL of the largest album cover image.
     let songData = data.tracks.items.map(track => ({
       title: track.name,
       artist: track.artists.map(artist => artist.name).join(', '),
@@ -362,6 +363,7 @@ app.get('/results', async (req, res) => {
       }, track.album.images[0]).url
     }));
 
+    //checking if each song has lyrics from lyrics.ovh
     const filteredSongData = await Promise.all(songData.map(async song => {
       const cleanedTitle = cleanTitle(song.title);
       const cleanedArtist = cleanArtist(song.artist);
@@ -373,8 +375,9 @@ app.get('/results', async (req, res) => {
       return null;
     }));
 
-    const songsWithLyrics = filteredSongData.filter(song => song !== null);
+    const songsWithLyrics = filteredSongData.filter(song => song !== null); //creates new array for songsWithLyrics
 
+    //pagination logic
     const itemsPerPage = 8;
     const page = req.query.page || 1;
     const totalItems = songsWithLyrics.length;
@@ -389,6 +392,7 @@ app.get('/results', async (req, res) => {
       pageNumbers.push({ number: i, isCurrent: i === Number(page) });
     }
 
+    //renders results template to display on webpage
     res.render('results', {
       searchQuery: searchQuery,
       searchResults: paginatedItems,
@@ -494,7 +498,7 @@ app.get('/analysis', async (req, res) => {
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          "model": "gpt-3.5-turbo-0125", //gpt-4-0125-preview or gpt-3.5-turbo-0125
+          "model": "gpt-4-turbo", //gpt-4-0125-preview or gpt-3.5-turbo-0125
           "messages": [
             {
               "role": "system",
@@ -636,7 +640,7 @@ app.get('/background', async (req, res) => {
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo-0125", //gpt-4-0125-preview or gpt-3.5-turbo-0125
+          model: "gpt-4-turbo", //gpt-4-0125-preview or gpt-3.5-turbo-0125
           messages,
           temperature: 0.5,
           max_tokens: 1200
