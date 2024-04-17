@@ -498,7 +498,7 @@ app.get('/analysis', async (req, res) => {
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          "model": "gpt-4-turbo", //gpt-4-0125-preview or gpt-3.5-turbo-0125
+          "model": "gpt-3.5-turbo-0125", //gpt-4-0125-preview or gpt-3.5-turbo-0125
           "messages": [
             {
               "role": "system",
@@ -640,7 +640,7 @@ app.get('/background', async (req, res) => {
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: "gpt-4-turbo", //gpt-4-0125-preview or gpt-3.5-turbo-0125
+          model: "gpt-3.5-turbo-0125", //gpt-4-0125-preview or gpt-3.5-turbo-0125
           messages,
           temperature: 0.5,
           max_tokens: 1200
@@ -798,7 +798,7 @@ const getDominantColor = async (albumCover) => {
       // Additional configurations could be added here
     });
 
-    vibrant.getPalette((err, palette) => {
+    vibrant.getPalette((err, palette) => { //extract color palette from image
       if (err) {
         reject(err);
         return;
