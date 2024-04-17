@@ -1,5 +1,16 @@
 Minutes:
-
+  - The login/create account/forgot password pages are functional now
+  - Showed TA how they are working after navigating from Charles to Lydia's computer
+  - We have an "account" page and a "saved analyses" page but neither are functioning yet
+  -Discussed how we could have been testing them and need to make sure they work
+  - As of right now, the only database we really have is music_db which saves users for 
+  login/create account/forget password functionality, so we need some other database to be 
+  implemented (friends)
+  - Debate over how we can do it and why we did not do it yet
+  - The errors we ran into and what was wrong as of right now
+  - Need to do manual insert to actually test
+  - Figure out a way to get the friends page
+  - Decided not to meet again but as a team need to conitnue to meet
 
 Plan:
   - For this week we need to finlize our website and test around for bugs on the website
