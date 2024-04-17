@@ -1,23 +1,30 @@
 {{> header}}
 {{> in_nav}}
-
-<div class="container text-center">
-  <h2 class="my-4">Account Information</h2> 
-</div>
-
 <div class="container">
-  <table class="table table-responsive">
-    <tbody>
-      <tr>
-        <th scope="row">Name</th>
-        <td>{{username}}</td>
-      </tr>
-      <tr>
-        <th scope="row">Email</th>
-        <td>{{email}}</td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="row justify-content-center"> <!-- Center the row -->
+    <div class="col-md-8"> <!-- Adjust column width as needed -->
+      <div class="text-center">
+        <h2 class="my-4">Account Information</h2> 
+      </div>
+
+      <div class="table-responsive"> <!-- Removed redundant container -->
+        <table class="table">
+          <tbody>
+            <tr>
+              <th scope="row">User Name</th>
+              <td>{{username}}</td>
+            </tr>
+            <tr>
+              <th scope="row">Email</th>
+              <td>{{email}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
+
+
 
 {{> footer}}
