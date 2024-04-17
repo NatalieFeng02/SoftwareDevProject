@@ -1,5 +1,9 @@
 Minutes:
-
+  - The login/create account/forgot password pages are functional now
+  - We have an "account" page and a "saved analyses" page but neither are functioning yet
+  - As of right now, the only database we really have is music_db which saves users for 
+  login/create account/forget password functionality, so we need some other database to be 
+  implemented (friends)
 
 Plan:
   - For this week we need to finlize our website and test around for bugs on the website
