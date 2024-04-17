@@ -906,15 +906,7 @@ app.get('/logout', (req, res) => {
 });
 
 
-
-// Handle 404 errors
-app.use((req, res, next) => {
-  res.status(404).send('Sorry, that page does not exist!');
-});
-
 // Set the app to listen on a port
-const PORT = process.env.PORT || 3000;
-module.exports = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 
 app.get('/accountinformation', (req, res) => {
@@ -924,5 +916,15 @@ app.get('/accountinformation', (req, res) => {
   }
 
   const {username, email} = req.session.user;
+  console.log('TEST TEST TEST' + req.session.user);
   res.render('accountinformation', {username, email});
+  
 });
+
+// Handle 404 errors
+app.use((req, res, next) => {
+  res.status(404).send('Sorry, that page does not exist!');
+});
+
+const PORT = process.env.PORT || 3000;
+module.exports = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
