@@ -35,6 +35,7 @@
         <img src="{{cover}}" alt="Album Cover" style="width: 300px;">
     </div>
 </div>
+<button class = "btn btn-dark mt-3 success" id="saveBackgroundButton" onclick="saveBackground()">Save Background</button>
 <div id="background-analysis">
     {{#each backgroundResults}}
         <div class="background-section">
@@ -113,3 +114,37 @@
     }
 
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.saveBackground = function() {
+      const backgroundData = {
+        title: '{{title}}',
+        artist: '{{artist}}',
+        backgroundResults: {{{json backgroundResults}}},
+        userID: {{{userID}}}
+      };
+
+      fetch('/save-background', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify(backgroundData)
+        })
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === 'success') {
+          alert('Background saved successfully!');
+        } 
+        else {
+          alert('Failed to save background.');
+        }
+      })
+      .catch(error => {
+        console.error('Error saving background:', error);
+        alert('Error saving background. Please try again.');
+      });
+    };
+  });
+</script>

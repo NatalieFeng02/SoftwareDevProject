@@ -22,6 +22,12 @@ const queryString = require('querystring');
 
 const app = express();
 
+const hbsHelper = {
+  json: function (context) {
+    return JSON.stringify(context);
+  }
+};
+
 const openai = new OpenAI(apiKey);
 const SpotifyWebApi = require('spotify-web-api-node');
 const { title } = require('process');
@@ -32,6 +38,7 @@ app.engine('.hbs', exphbs({
   layoutsDir: path.join(__dirname, 'views/layouts'), // Assuming you have a layouts directory inside 'views'
   partialsDir: path.join(__dirname, 'views/partials'), // Correct path to your partials
   defaultLayout: 'main', // Assuming 'main.hbs' is your main layout inside 'views/layouts'
+  helpers: hbsHelper
 }));
 app.set('view engine', '.hbs');
 app.set('views', path.join(__dirname, 'views/pages')); // Correct path to your pages
@@ -303,7 +310,10 @@ app.post("/login", async (req, res) => {
 //   next();
 // };
 
-// app.use(a);
+app.use((req, res, next) => {
+  res.locals.user = req.session.users;
+  next();
+});
 
 
 app.get("/", (req, res) => {
@@ -539,6 +549,7 @@ app.get('/analysis', async (req, res) => {
       title: decodeURIComponent(title),
       artist: decodeURIComponent(artist),
       album: decodeURIComponent(req.query.album),
+      userID: req.session.user.id,
       analysisResults, // Pass the array of lyrics and analyses
       spotifyUri,
       albumCover,
@@ -552,6 +563,7 @@ app.get('/analysis', async (req, res) => {
       artist: decodeURIComponent(artist),
       album: decodeURIComponent(req.query.album),
       albumCover,
+      userID: req.session.user.id,
       error: `An error occurred: ${error.message}`,
       analysisResults: [], // Ensure the template can handle an empty array
       dominantColor,
@@ -666,6 +678,7 @@ app.get('/background', async (req, res) => {
       title: decodeURIComponent(title),
       artist: decodeURIComponent(artist),
       album: decodeURIComponent(album),
+      userID: req.session.user.id,
       cover: coverUrl,
       credits: credits,
       backgroundResults,
@@ -676,6 +689,7 @@ app.get('/background', async (req, res) => {
     console.error('Catch error:', error);
     res.render('background', {
       error: `An error occurred: ${error.message}`,
+      userID: req.session.user.id,
       backgroundResults: [], // Ensure the template can handle an empty array
       dominantColor,
       inNav
@@ -683,17 +697,17 @@ app.get('/background', async (req, res) => {
   }
 });
 
-/*
+
 app.post('/save-analysis', async (req, res) => {
-  const {title, artist, analysisResults} = req.body;
+  const {title, artist, analysisResults, userID} = req.body;
 
   const serializedAnalysis = JSON.stringify(analysisResults);
   try{
-    const insertQuery = `INSERT INTO analysis(title, artist, def_analysis) VALUES($1, $2, $3)
-    ON CONFLICT (title, artist) DO UPDATE
+    const insertQuery = `INSERT INTO analysis(title, artist, def_analysis, user_id) VALUES($1, $2, $3, $4)
+    ON CONFLICT (title, artist, user_id) DO UPDATE
     SET def_analysis = EXCLUDED.def_analysis;
     `;
-  await db.query(insertQuery, [title, artist, serializedAnalysis]);
+  await db.query(insertQuery, [title, artist, serializedAnalysis, userID]);
   res.json({status: 'success', message: 'Analysis saved successfully'});
 } catch (error) {
   console.error('Error saving analysis, please try again', error);
@@ -702,22 +716,22 @@ app.post('/save-analysis', async (req, res) => {
 });
 
 app.post('/save-background', async (req, res) => {
-  const {title, artist, analysisResults} = req.body;
+  const {title, artist, backgroundResults, userID} = req.body;
 
   const serializedBackground = JSON.stringify(backgroundResults);
   try{
-    const insertQuery = `INSERT INTO analysis(title, artist, hist_analysis) VALUES($1, $2, $3)
-    ON CONFLICT (title, artist) DO UPDATE
+    const insertQuery = `INSERT INTO analysis(title, artist, hist_analysis, user_id) VALUES($1, $2, $3, $4)
+    ON CONFLICT (title, artist, user_id) DO UPDATE
     SET hist_analysis = EXCLUDED.hist_analysis;
     `;
-  await db.query(insertQuery, [title, artist, serializedBackground]);
+  await db.query(insertQuery, [title, artist, serializedBackground, userID]);
   res.json({status: 'success', message: 'Background saved successfully'});
 } catch (error) {
   console.error('Error saving background, please try again', error);
   res.status(500).json({status: 'error', message: 'Failed to save background'});
 };
 });
-*/
+
 
 async function fetchSpotifyAlbumCovers(cleanedTitle, cleanedArtist) {
   try {

@@ -46,8 +46,13 @@ CREATE TABLE lyrics (
 
 CREATE TABLE analysis (
   id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL,
+  title VARCHAR(100) NOT NULL,
+  artist VARCHAR(100) NOT NULL,
   def_analysis TEXT,
-  hist_analysis TEXT
+  hist_analysis TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE (title, artist, user_id)
 );
 
 -- Intended use so users can save analyses to their profile
