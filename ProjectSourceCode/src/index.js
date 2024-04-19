@@ -719,6 +719,84 @@ app.post('/save-background', async (req, res) => {
 });
 */
 
+// app.post('/accountinformation', async (req, res) => {
+//   if (!req.session.user) {
+//     return res.redirect('/login');
+//   }
+
+//   const { newUsername, newEmail } = req.body;
+
+//   try {
+//     // Update the user's information in the session
+//     req.session.user.username = newUsername;
+//     req.session.user.email = newEmail;
+//     const existingUser = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [username]);
+//     if (existingUser) {
+//       return{
+//         message: "Username already exists. Please choose a different username.",
+//       };
+//     }
+//     // Update the user's information in the database
+//     // updateQuery = 'UPDATE users SET username = $1, email = $2 WHERE id = $3';
+//     // const values = [newUsername, newEmail, req.session.user.id];
+//     // await db.query(updateQuery, values);
+
+//   const userId = req.session.user.id;
+//   const newUsername = 'new_username';
+//   const newEmail = 'new_email@example.com';
+
+//   // Execute the update query
+//   db.none(updateQuery, [newUsername, newEmail, userId])
+//     .then(() => {
+//       console.log('User information updated successfully');
+//     })
+//     .catch(error => {
+//       console.error('Error updating user information:', error);
+//     });
+
+//     // Redirect the user back to the account information page
+//     // res.redirect('/accountinformation');
+//   } catch (error) {
+//     console.error('Error updating user information:', error);
+//     res.status(500).send('Error updating user information');
+//   }
+// });
+app.post('/accountinformation', async (req, res) => {
+  if (!req.session.user) {
+    return res.redirect('/login');
+  }
+
+  const { newUsername, newEmail } = req.body;
+
+  try {
+    // Update the user's information in the session
+    req.session.user.username = newUsername;
+    req.session.user.email = newEmail;
+
+    // Check if the new username already exists
+    const existingUser = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [newUsername]);
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Username already exists. Please choose a different username.",
+      });
+    }
+
+    // Update the user's information in the database
+    const updateQuery = 'UPDATE users SET username = $1, email = $2 WHERE id = $3';
+    const userId = req.session.user.id;
+
+    await db.none(updateQuery, [newUsername, newEmail, userId]);
+
+    console.log('User information updated successfully');
+
+    // Redirect the user back to the account information page
+    res.redirect('/accountinformation');
+  } catch (error) {
+    console.error('Error updating user information:', error);
+    res.status(500).send('Error updating user information');
+  }
+});
+
 async function fetchSpotifyAlbumCovers(cleanedTitle, cleanedArtist) {
   try {
     // Use the Spotify API to search for the track using the cleaned title and artist
@@ -906,20 +984,35 @@ app.get('/logout', (req, res) => {
 });
 
 
-// Set the app to listen on a port
-
-
 app.get('/accountinformation', (req, res) => {
-  if (!req.session.user) 
-  {
+  if (!req.session.user) {
+    return res.redirect('/login');
+  }
+  const { username, email } = req.session.user;
+  res.render('accountinformation', { username, email });
+});
+
+app.post('/accountinformation', async (req, res) => {
+  if (!req.session.user) {
     return res.redirect('/login');
   }
 
-  const {username, email} = req.session.user;
-  console.log('TEST TEST TEST' + req.session.user);
-  res.render('accountinformation', {username, email});
-  
+  const { newUsername, newEmail } = req.body;
+  const userId = req.session.user.id; 
+
+  try {
+    req.session.user.username = newUsername;
+    req.session.user.email = newEmail;
+
+    await db.any('UPDATE users SET username = $1, email = $2 WHERE id = $3', [newUsername, newEmail, userId]);
+
+    // res.redirect('/accountinformation');
+  } catch (error) {
+    console.error('Error updating user information:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
+
 
 // Handle 404 errors
 app.use((req, res, next) => {
