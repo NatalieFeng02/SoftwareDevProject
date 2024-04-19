@@ -30,14 +30,6 @@ CREATE TABLE songs (
 -- ON DELETE CASCADE binds to other table i.e, if we delete a song from database, associated lyrics will also be deleted
 -- Prevents "floating" entries such as deleting a song but the lyrics is still in the database and now linked to nothing.
 
-CREATE TABLE songs_to_lyrics (
-  song_id INT NOT NULL,
-  lyrics_id INT NOT NULL,
-  PRIMARY KEY (song_id, lyrics_id),
-  FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE,
-  FOREIGN KEY (lyrics_id) REFERENCES lyrics(id) ON DELETE CASCADE
-);
-
 CREATE TABLE lyrics (
   id SERIAL PRIMARY KEY,
   english TEXT, -- TEXT has character limit of around 60,000 characters (Lowest amount after VARCHAR)
@@ -46,15 +38,11 @@ CREATE TABLE lyrics (
 
 CREATE TABLE analysis (
   id SERIAL PRIMARY KEY,
-  def_analysis TEXT,
-  hist_analysis TEXT
-);
-
--- Intended use so users can save analyses to their profile
-CREATE TABLE analysis_to_users (
   user_id INT NOT NULL,
-  analysis_id INT NOT NULL,
-  PRIMARY KEY (user_id, analysis_id), -- Composite primary key prevents one user from saving the same analysis multiple times
+  title VARCHAR(100) NOT NULL,
+  artist VARCHAR(100) NOT NULL,
+  def_analysis TEXT,
+  hist_analysis TEXT,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (analysis_id) REFERENCES analysis(id) ON DELETE CASCADE 
+  UNIQUE (title, artist, user_id)
 );

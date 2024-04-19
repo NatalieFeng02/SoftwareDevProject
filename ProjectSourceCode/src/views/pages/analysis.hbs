@@ -11,6 +11,7 @@
         data-artist="{{artist}}" 
         data-album="{{album}}"
         data-album-cover="{{albumCover}}">Background</button>
+      <button class = "btn btn-dark mt-3 success" id="saveAnalysisButton" onclick="saveAnalysis()">Save Analysis</button>
     </div>
     <div id="spotify-embed">
       <!-- Spotify Embed Placeholder -->
@@ -191,4 +192,38 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.saveAnalysis = function() {
+      const analysisData = {
+        title: '{{title}}',
+        artist: '{{artist}}',
+        analysisResults: {{{json analysisResults}}},
+        userID: {{{userID}}}
+      };
+
+      fetch('/save-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify(analysisData)
+        })
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === 'success') {
+          alert('Analysis saved successfully!');
+        } 
+        else {
+          alert('Failed to save analysis.');
+        }
+      })
+      .catch(error => {
+        console.error('Error saving analysis:', error);
+        alert('Error saving analysis. Please try again.');
+      });
+    };
+  });
 </script>
