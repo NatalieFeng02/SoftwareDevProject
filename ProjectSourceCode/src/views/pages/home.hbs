@@ -55,8 +55,8 @@ function shuffleArray(array) {
 // Function to fetch and display albums initially
 async function fetchAndDisplayAlbums() {
   try {
-    const response = await fetch('/api/album-covers');
-    const albums = await response.json();
+    const response = await fetch('/api/album-covers'); //get request to endpoint
+    const albums = await response.json(); //converts JSON into a JS object
     shuffleArray(albums); // Shuffle the albums
     displayedAlbums = albums.slice(0, 9); // Now storing the first 9 shuffled albums globally
     displayAlbums(displayedAlbums); // Display these albums
@@ -73,7 +73,8 @@ function displayAlbums(albums) {
   const container = document.querySelector('.album-container');
   container.innerHTML = ''; // Clear existing content
 
-  albums.slice(0, 9).forEach(album => {
+  //creates new div for each album cover and adds the cover to album-container
+  albums.slice(0, 9).forEach(album => { //New array from OG array, runs function through each element
     const wrapper = document.createElement('div');
     wrapper.className = 'album-cover'; // Apply class to the wrapper for the fade effect
     wrapper.innerHTML = `<img src="${album.imageUrl}" alt="${album.name}" style="max-width:100%; height:auto;">`;
@@ -90,18 +91,18 @@ function rotateAlbums() {
     let currentIndex = -1; // Initialize outside valid range to ensure the first selected index is 0
 
     // Function to handle the transition of album covers
-    const transitionAlbumCover = () => {
-        let nextIndex;
+    const transitionAlbumCover = () => { //nested function
+        let nextIndex; //new random cover chosen to change
         do {
             nextIndex = Math.floor(Math.random() * displayedAlbums.length);
         } while (nextIndex === currentIndex); // Avoid repeating the same album
 
         currentIndex = nextIndex; // Update currentIndex for the next iteration
 
-        fetchAlbumCovers().then(newAlbums => {
+        fetchAlbumCovers().then(newAlbums => { //fetched new album covers
             shuffleArray(newAlbums); // Ensure randomness
 
-            const newAlbum = newAlbums.find(album => !displayedAlbums.some(displayedAlbum => displayedAlbum.imageUrl === album.imageUrl));
+            const newAlbum = newAlbums.find(album => !displayedAlbums.some(displayedAlbum => displayedAlbum.imageUrl === album.imageUrl)); //finds first album not displayed yet
             if (newAlbum) {
                 const albumElement = document.querySelectorAll('.album-cover')[nextIndex];
                 const imgElement = albumElement.querySelector('img');
@@ -109,6 +110,7 @@ function rotateAlbums() {
                     // Fade out the current image
                     albumElement.style.opacity = 0;
 
+                    //delays opacity going to 0 for 2 seconds, changes the cover, and fades it back in
                     setTimeout(() => {
                         const img = new Image();
                         img.onload = () => {
@@ -120,7 +122,7 @@ function rotateAlbums() {
                         };
                         img.src = newAlbum.imageUrl; // Start loading the new image
 
-                        displayedAlbums[nextIndex] = newAlbum;
+                        displayedAlbums[nextIndex] = newAlbum; //displayed image updated to newAlbum
                     }, 2000); // Wait for the fade-out to complete
                 }
             }
@@ -130,12 +132,13 @@ function rotateAlbums() {
     };
 
     // Immediately execute transitionAlbumCover for the first transition
+    //?
     transitionAlbumCover();
 
     // Then set up the interval for subsequent transitions
     setInterval(() => {
         transitionAlbumCover();
-    }, 5000); // Including transition time and additional waiting time
+    }, 5000); // transition album cover every 5 seconds
 }
 
 
@@ -151,6 +154,6 @@ async function fetchAlbumCovers() {
   return newAlbums;
 }
 
-// Start the process after the DOM has fully loaded
+// Only fetches album covers after DOM has loaded
 document.addEventListener('DOMContentLoaded', fetchAndDisplayAlbums);
 </script>

@@ -292,26 +292,33 @@ app.post("/login", async (req, res) => {
       const passwordMatch = await bcrypt.compare(password, user.password);
 
       if (passwordMatch) {
-        req.session.user = user;
+        // Setting user details in the session, specifically the user ID
+        req.session.userId = user.id;  // It's better to store only the user ID or minimal required info
+        req.session.isLoggedIn = true; // This can be used to check if the user is logged in
         await req.session.save(); // Ensure session saving is awaited
-        return res.redirect("/");
+
+        res.redirect("/");  // Redirect the user to the homepage after successful login
       } else {
-        return res.render("login", {
-          message: "Incorrect username or password.",
+        // Providing feedback directly in the login form for incorrect password
+        res.render("login", {
+          message: "Incorrect username or password. Please try again.",
         });
       }
     } else {
-      return res.render("login", {
-        message: "User not found. Please register.",
+      // User not found, offer link to registration
+      res.render("login", {
+        message: "User not found. Please <a href='/register'>register</a>.",
       });
     }
   } catch (error) {
     console.error("Error during login:", error);
-    return res.render("login", {
-      message: "An error occurred. Please try again.",
+    // General error handling for the login process
+    res.render("login", {
+      message: "An error occurred. Please try again later.",
     });
   }
 });
+
 
 
 // const a = (req, res, next) => {
@@ -468,12 +475,14 @@ app.get('/results_users', async (req, res) => {
 
 
 app.get('/get-user-id', (req, res) => {
-  if (req.session && req.session.userId) {
-      res.json({ followerId: req.session.userId });
+  console.log('Session Data:', req.session);
+  if (req.session.userId) {  // Checks if session contains user ID
+    res.json({ followerId: req.session.userId });
   } else {
-      res.status(403).json({ message: 'User not authenticated' });
+    res.status(403).json({ message: 'Not authenticated' });
   }
 });
+
 
 app.post('/follow-user', async (req, res) => {
   const { followerId, followingId } = req.body;
