@@ -155,6 +155,17 @@ app.get('/search', async (req, res) => {
   }
 });
 
+app.get('/search_users', async (req, res) => {
+  try {
+    const playlistData = await fetchAllPlaylistTracks('1DPLMFnJ3F6iOkDmlEzggq'); //fetches playlist for search suggestions
+    // Log the data to see what's being passed
+    res.render('search_users', { playlistData: JSON.stringify(playlistData) }); //renders playlist data for HTMl
+  } catch (error) {
+    console.error('Failed to fetch playlist data:', error);
+    res.render('search_users', { playlistData: JSON.stringify([]) }); // Send empty array on error
+  }
+});
+
 async function fetchAllPlaylistTracks(playlistId) {
   const accessToken = await getSpotifyAccessToken();
   let tracksData = [];
@@ -415,6 +426,72 @@ app.get('/results', async (req, res) => {
   }
 });
 
+app.get('/results_users', async (req, res) => {
+  const searchQuery = req.query.searchQuery || ''; // Collect search query
+
+  try {
+    // Constructs SQL query to search for usernames containing the search term, using ILIKE for case-insensitive matching
+    const sqlQuery = 'SELECT * FROM users WHERE username ILIKE $1 ORDER BY username ASC LIMIT 50';
+    //const sqlQuery = 'SELECT * FROM users';
+    const values = [`%${searchQuery}%`]; // Prepare the value to be used in the query
+
+    const users = await db.query(sqlQuery, values); // Execute the query
+    console.log('test result:')
+    console.log(users);
+    // Pagination logic
+    const itemsPerPage = 10;
+    const page = parseInt(req.query.page || 1);
+    const totalItems = users.length;
+
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedItems = users.slice(startIndex, endIndex);
+
+    const pageNumbers = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pageNumbers.push({ number: i, isCurrent: i === page });
+    }
+
+    // Renders results_users template to display on webpage
+    res.render('results_users', {
+      searchQuery: searchQuery,
+      searchResults: paginatedItems,
+      pages: pageNumbers,
+      totalPages: totalPages,
+    });
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).send('Error fetching user data');
+  }
+});
+
+
+app.get('/get-user-id', (req, res) => {
+  if (req.session && req.session.userId) {
+      res.json({ followerId: req.session.userId });
+  } else {
+      res.status(403).json({ message: 'User not authenticated' });
+  }
+});
+
+app.post('/follow-user', async (req, res) => {
+  const { followerId, followingId } = req.body;
+  if (!followerId || !followingId) {
+    return res.status(400).json({ success: false, message: 'Missing follower or following ID' });
+  }
+
+  try {
+    const sqlQuery = 'INSERT INTO user_relationships (follower_id, following_id) VALUES ($1, $2)';
+    const values = [followerId, followingId];
+    await db.query(sqlQuery, values);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error adding follow relationship:', error);
+    res.status(500).json({ success: false, message: 'Database error' });
+  }
+});
+
 
 async function getSpotifyAccessToken() {
   const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
@@ -508,7 +585,7 @@ app.get('/analysis', async (req, res) => {
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          "model": "gpt-3.5-turbo-0125", //gpt-4-0125-preview or gpt-3.5-turbo-0125
+          "model": "gpt-4-turbo", //gpt-4-0125-preview or gpt-3.5-turbo-0125
           "messages": [
             {
               "role": "system",
@@ -652,7 +729,7 @@ app.get('/background', async (req, res) => {
           'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo-0125", //gpt-4-0125-preview or gpt-3.5-turbo-0125
+          model: "gpt-4-turbo", //gpt-4-0125-preview or gpt-3.5-turbo-0125
           messages,
           temperature: 0.5,
           max_tokens: 1200
@@ -899,7 +976,7 @@ const getDominantColor = async (albumCover) => {
       // Additional configurations could be added here
     });
 
-    vibrant.getPalette((err, palette) => { //extract color palette from image
+    vibrant.getPalette((err, palette) => {
       if (err) {
         reject(err);
         return;

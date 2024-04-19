@@ -12,11 +12,29 @@
 --   email VARCHAR(50) NOT NULL,
 --   password TEXT NOT NULL -- Text instead of varchar for hashing key, unknown hash size.
 -- );
+
+-- DROP TABLE IF EXISTS analysis_to_users CASCADE;
+-- DROP TABLE IF EXISTS songs_to_lyrics CASCADE;
+-- DROP TABLE IF EXISTS lyrics CASCADE;
+-- DROP TABLE IF EXISTS songs CASCADE;
+-- DROP TABLE IF EXISTS user_relationships CASCADE;
+-- DROP TABLE IF EXISTS users CASCADE;
+
+
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(50),
     password CHAR(60) NOT NULL
+);
+ALTER SEQUENCE users_id_seq RESTART WITH 1;
+-- Create a table for user relationships
+CREATE TABLE user_relationships (
+    follower_id INT,
+    following_id INT,
+    PRIMARY KEY (follower_id, following_id),
+    FOREIGN KEY (follower_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (following_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 -- Are we planning to store the album covers or do those only appear when searching?
@@ -27,14 +45,21 @@ CREATE TABLE songs (
   artist VARCHAR(50) NOT NULL,
   album_cover VARCHAR(255) -- URL/path to album cover image IF needed
 );
--- ON DELETE CASCADE binds to other table i.e, if we delete a song from database, associated lyrics will also be deleted
--- Prevents "floating" entries such as deleting a song but the lyrics is still in the database and now linked to nothing.
 
 CREATE TABLE lyrics (
   id SERIAL PRIMARY KEY,
   english TEXT, -- TEXT has character limit of around 60,000 characters (Lowest amount after VARCHAR)
   spanish TEXT -- More languages possible if needed, spanish for default 2nd language
 );
+
+CREATE TABLE songs_to_lyrics (
+  song_id INT NOT NULL,
+  lyrics_id INT NOT NULL,
+  PRIMARY KEY (song_id, lyrics_id),
+  FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE,
+  FOREIGN KEY (lyrics_id) REFERENCES lyrics(id) ON DELETE CASCADE
+);
+
 
 CREATE TABLE analysis (
   id SERIAL PRIMARY KEY,

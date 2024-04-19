@@ -1,0 +1,73 @@
+{{> header}}
+
+{{> in_nav}}
+
+<div class="container mt-5">
+  <h1 class="text-center mb-4" id="search-logo">User Search</h1>
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <form id="search-form" class="input-group" action="/results_users" method="GET">
+        <input type="text" class="form-control" name="searchQuery" placeholder="Search by username">
+        <div class="input-group-append">
+          <button type="submit" class="btn btn-outline-secondary">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{{> footer}}
+
+<style>
+  #search-logo {
+    font-family: 'DieNasty', sans-serif;
+    font-size: 52px;
+  }
+
+  .fade-in {
+    animation: fadeIn ease 1s;
+    animation-fill-mode: forwards;
+  }
+
+  .fade-out {
+    animation: fadeOut ease 1s;
+    animation-fill-mode: forwards;
+  }
+
+  @keyframes fadeIn {
+    0% {opacity:0;}
+    100% {opacity:1;}
+  }
+
+  @keyframes fadeOut {
+    0% {opacity:1;}
+    100% {opacity:0;}
+  }
+
+  .search-container {
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center items horizontally */
+    justify-content: center; /* Center items vertically */
+    font-size: 24px;
+    font-family: 'Inter', sans-serif;
+    margin-bottom: 20px;
+    margin-top: 60px;
+    width: 100%;
+  }
+
+  .search-container .label {
+    text-align: center; /* Center the text horizontally */
+    margin-bottom: 10px; /* Optional: space between the label and dynamic content */
+  }
+
+  #random-song-info {
+    display: none; /* Hide the song info element */
+  }
+
+  .label {
+    font-weight: 700;
+  }
+</style>

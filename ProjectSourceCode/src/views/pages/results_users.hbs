@@ -1,0 +1,81 @@
+{{> in_nav}}
+
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Results for '{{searchQuery}}'</h2>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Username</th>
+          <th scope="col">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each searchResults}}
+        <tr>
+          <td>{{this.username}}</td>
+          <td>
+            <button class="btn btn-primary follow-btn" data-following-id="{{this.id}}" onclick="followUser(this);">Follow</button>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+
+  <nav aria-label="Search results pages" class="mt-4">
+    <ul class="pagination justify-content-center" id="pages">
+      {{#each pages}}
+        <li class="page-item{{#if this.isCurrent}} active{{/if}}">
+          <a class="page-link" href="?searchQuery={{../searchQuery}}&page={{this.number}}">{{this.number}}</a>
+        </li>
+      {{/each}}
+    </ul>
+  </nav>
+</div>
+
+{{> footer}}
+
+<script>
+function followUser(buttonElement) {
+  const followingId = buttonElement.getAttribute('data-following-id');
+  
+  // Fetch the follower ID securely from the server or from a secure cookie/session storage
+  fetch('/get-user-id')  // This should return the logged-in user's ID securely
+    .then(response => response.json())
+    .then(data => {
+      if (data && data.followerId) {
+        postFollowRequest(data.followerId, followingId, buttonElement);
+      } else {
+        console.error('Failed to retrieve user ID.');
+      }
+    })
+    .catch(error => {
+      console.error('Error retrieving user ID:', error);
+    });
+}
+
+function postFollowRequest(followerId, followingId, buttonElement) {
+  fetch('/follow-user', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({ followerId, followingId })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      console.log('Follow successful');
+      buttonElement.textContent = 'Following'; // Update button text
+      buttonElement.classList.remove('btn-primary');
+      buttonElement.classList.add('btn-secondary');
+      buttonElement.disabled = true; // Disable button
+    } else {
+      console.log('Follow failed', data.message);
+    }
+  })
+  .catch(error => console.error('Error following user:', error));
+}
+</script>
