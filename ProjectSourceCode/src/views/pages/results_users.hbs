@@ -15,11 +15,13 @@
 <tr>
   <td>{{this.username}}</td>
   <td>
+    {{#unless this.is_same_user}}
     <button class="btn {{#if this.is_following}}btn-secondary{{else}}btn-primary{{/if}} follow-btn"
             data-following-id="{{this.id}}"
             onclick="followUser(this, {{this.is_following}});">
       {{#if this.is_following}}Following{{else}}Follow{{/if}}
     </button>
+    {{/unless}}
   </td>
 </tr>
 {{/each}}

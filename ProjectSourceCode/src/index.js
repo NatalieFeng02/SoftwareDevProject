@@ -28,6 +28,7 @@ const hbsHelper = {
   }
 };
 
+
 const openai = new OpenAI(apiKey);
 const SpotifyWebApi = require('spotify-web-api-node');
 const { title } = require('process');
@@ -442,7 +443,8 @@ app.get('/results_users', async (req, res) => {
   try {
     const sqlQuery = `
       SELECT u.id, u.username,
-        CASE WHEN f.following_id IS NOT NULL THEN true ELSE false END AS is_following
+        CASE WHEN f.following_id IS NOT NULL THEN true ELSE false END AS is_following,
+        CASE WHEN u.id = $1 THEN true ELSE false END AS is_same_user
       FROM users u
       LEFT JOIN user_relationships f ON u.id = f.following_id AND f.follower_id = $1
       WHERE u.username ILIKE $2
@@ -492,12 +494,17 @@ app.get('/get-user-id', (req, res) => {
 });
 
 
+
+
 app.post('/follow-user', async (req, res) => {
   try {
       const { followingId } = req.body;
       const followerId = req.session.userId;  // Ensure the user is logged in and session is available
       if (!followerId) {
           return res.status(403).json({ success: false, message: "User not logged in" });
+      }
+      if (followingId == followerId){
+        return res.status(401).json({ success: false, message: "Can't follow yourself" });
       }
 
       // Assume db.query runs SQL to insert a follow relation
