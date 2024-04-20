@@ -295,6 +295,7 @@ app.post("/login", async (req, res) => {
       if (passwordMatch) {
         // Setting user details in the session, specifically the user ID
         req.session.userId = user.id;  // It's better to store only the user ID or minimal required info
+        req.session.user = user;
         req.session.isLoggedIn = true; // This can be used to check if the user is logged in
         await req.session.save(); // Ensure session saving is awaited
 
