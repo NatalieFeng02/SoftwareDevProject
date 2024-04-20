@@ -91,8 +91,9 @@ app.get('/welcome', (req, res) => {
   res.json({status: 'success', message: 'Welcome!'});
 });
 
+//loggedin is true if the user is logged in and false if the user is logged out
 app.get('/', (req, res) => {
-  res.render('home'); 
+  res.render('home', {loggedin: !!req.session.user});
 });
 
 async function fetchAlbumCovers() {
@@ -215,22 +216,22 @@ function shuffleArray(array) {
 
 // Below two endpoints for unit test
 
-app.post('/register', async (req, res) => {
-  const { username, email, password } = req.body;
+// app.post('/register', async (req, res) => {
+//   const { username, email, password } = req.body;
 
-  const hash = await bcrypt.hash(password, 10);
+//   const hash = await bcrypt.hash(password, 10);
 
-  var insertUser = `INSERT INTO users(username, email, password) VALUES ($1, $2, $3)`;
+//   var insertUser = `INSERT INTO users(username, email, password) VALUES ($1, $2, $3)`;
 
-  try{
-    let response = await db.query(insertUser, [username, email, password]);
-    res.json({status: 'success', message: 'Registered'});
-  }
-  catch(err){
-    res.json({status: 'error', message: 'Account already exists'})
-  }
+//   try{
+//     let response = await db.query(insertUser, [username, email, password]);
+//     res.json({status: 'success', message: 'Registered'});
+//   }
+//   catch(err){
+//     res.json({status: 'error', message: 'Account already exists'})
+//   }
 
-});
+// });
 
 app.delete('/users', async (req, res) => {
   const { username } = req.body;
@@ -334,9 +335,9 @@ app.use((req, res, next) => {
 });
 
 
-app.get("/", (req, res) => {
-  res.redirect("login");
-});
+// app.get("/", (req, res) => {
+//   res.redirect("login");
+// });
 
 app.get("/create", (req, res) => {
   res.render("create");
