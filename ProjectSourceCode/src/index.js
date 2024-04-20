@@ -292,26 +292,33 @@ app.post("/login", async (req, res) => {
       const passwordMatch = await bcrypt.compare(password, user.password);
 
       if (passwordMatch) {
-        req.session.user = user;
+        // Setting user details in the session, specifically the user ID
+        req.session.userId = user.id;  // It's better to store only the user ID or minimal required info
+        req.session.isLoggedIn = true; // This can be used to check if the user is logged in
         await req.session.save(); // Ensure session saving is awaited
-        return res.redirect("/");
+
+        res.redirect("/");  // Redirect the user to the homepage after successful login
       } else {
-        return res.render("login", {
-          message: "Incorrect username or password.",
+        // Providing feedback directly in the login form for incorrect password
+        res.render("login", {
+          message: "Incorrect username or password. Please try again.",
         });
       }
     } else {
-      return res.render("login", {
-        message: "User not found. Please register.",
+      // User not found, offer link to registration
+      res.render("login", {
+        message: "User not found. Please <a href='/register'>register</a>.",
       });
     }
   } catch (error) {
     console.error("Error during login:", error);
-    return res.render("login", {
-      message: "An error occurred. Please try again.",
+    // General error handling for the login process
+    res.render("login", {
+      message: "An error occurred. Please try again later.",
     });
   }
 });
+
 
 
 // const a = (req, res, next) => {
@@ -428,12 +435,18 @@ app.get('/results', async (req, res) => {
 
 app.get('/results_users', async (req, res) => {
   const searchQuery = req.query.searchQuery || ''; // Collect search query
+  const followerId = req.session.userId; // Assume you store userId in session
 
   try {
-    // Constructs SQL query to search for usernames containing the search term, using ILIKE for case-insensitive matching
-    const sqlQuery = 'SELECT * FROM users WHERE username ILIKE $1 ORDER BY username ASC LIMIT 50';
-    //const sqlQuery = 'SELECT * FROM users';
-    const values = [`%${searchQuery}%`]; // Prepare the value to be used in the query
+    const sqlQuery = `
+      SELECT u.id, u.username,
+        CASE WHEN f.following_id IS NOT NULL THEN true ELSE false END AS is_following
+      FROM users u
+      LEFT JOIN user_relationships f ON u.id = f.following_id AND f.follower_id = $1
+      WHERE u.username ILIKE $2
+      ORDER BY u.username ASC
+      LIMIT 50`;
+    const values = [followerId, `%${searchQuery}%`];
 
     const users = await db.query(sqlQuery, values); // Execute the query
     console.log('test result:')
@@ -468,29 +481,46 @@ app.get('/results_users', async (req, res) => {
 
 
 app.get('/get-user-id', (req, res) => {
-  if (req.session && req.session.userId) {
-      res.json({ followerId: req.session.userId });
+  console.log('Session Data:', req.session);
+  if (req.session.userId) {  // Checks if session contains user ID
+    res.json({ followerId: req.session.userId });
   } else {
-      res.status(403).json({ message: 'User not authenticated' });
+    res.status(403).json({ message: 'Not authenticated' });
   }
 });
+
 
 app.post('/follow-user', async (req, res) => {
-  const { followerId, followingId } = req.body;
-  if (!followerId || !followingId) {
-    return res.status(400).json({ success: false, message: 'Missing follower or following ID' });
-  }
-
   try {
-    const sqlQuery = 'INSERT INTO user_relationships (follower_id, following_id) VALUES ($1, $2)';
-    const values = [followerId, followingId];
-    await db.query(sqlQuery, values);
-    res.json({ success: true });
+      const { followingId } = req.body;
+      const followerId = req.session.userId;  // Ensure the user is logged in and session is available
+      if (!followerId) {
+          return res.status(403).json({ success: false, message: "User not logged in" });
+      }
+
+      // Assume db.query runs SQL to insert a follow relation
+      await db.query("INSERT INTO user_relationships (follower_id, following_id) VALUES ($1, $2)", [followerId, followingId]);
+      res.json({ success: true });
   } catch (error) {
-    console.error('Error adding follow relationship:', error);
-    res.status(500).json({ success: false, message: 'Database error' });
+      res.status(500).json({ success: false, message: "Database error" });
   }
 });
+
+app.post('/unfollow-user', async (req, res) => {
+  try {
+      const { followingId } = req.body;
+      const followerId = req.session.userId;
+      if (!followerId) {
+          return res.status(403).json({ success: false, message: "User not logged in" });
+      }
+
+      await db.query("DELETE FROM user_relationships WHERE follower_id = $1 AND following_id = $2", [followerId, followingId]);
+      res.json({ success: true });
+  } catch (error) {
+      res.status(500).json({ success: false, message: "Database error" });
+  }
+});
+
 
 
 async function getSpotifyAccessToken() {

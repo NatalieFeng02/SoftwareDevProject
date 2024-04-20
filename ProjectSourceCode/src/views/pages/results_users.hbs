@@ -11,14 +11,18 @@
         </tr>
       </thead>
       <tbody>
-        {{#each searchResults}}
-        <tr>
-          <td>{{this.username}}</td>
-          <td>
-            <button class="btn btn-primary follow-btn" data-following-id="{{this.id}}" onclick="followUser(this);">Follow</button>
-          </td>
-        </tr>
-        {{/each}}
+{{#each searchResults}}
+<tr>
+  <td>{{this.username}}</td>
+  <td>
+    <button class="btn {{#if this.is_following}}btn-secondary{{else}}btn-primary{{/if}} follow-btn"
+            data-following-id="{{this.id}}"
+            onclick="followUser(this, {{this.is_following}});">
+      {{#if this.is_following}}Following{{else}}Follow{{/if}}
+    </button>
+  </td>
+</tr>
+{{/each}}
       </tbody>
     </table>
   </div>
@@ -37,45 +41,86 @@
 {{> footer}}
 
 <script>
-function followUser(buttonElement) {
-  const followingId = buttonElement.getAttribute('data-following-id');
-  
-  // Fetch the follower ID securely from the server or from a secure cookie/session storage
-  fetch('/get-user-id')  // This should return the logged-in user's ID securely
-    .then(response => response.json())
+  console.log('Session ID:', document.cookie);
+
+function followUser(buttonElement, isFollowing) {
+    const followingId = buttonElement.getAttribute('data-following-id');
+    const action = isFollowing ? 'unfollow-user' : 'follow-user'; // Decide the endpoint based on status
+
+    fetch(`/${action}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        credentials: 'include', // Ensures cookies are sent
+        body: JSON.stringify({ followingId })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
-      if (data && data.followerId) {
-        postFollowRequest(data.followerId, followingId, buttonElement);
-      } else {
-        console.error('Failed to retrieve user ID.');
-      }
+        if (data.success) {
+            console.log(`${isFollowing ? 'Unfollow' : 'Follow'} successful`);
+            buttonElement.textContent = isFollowing ? 'Follow' : 'Following'; // Toggle button text
+            buttonElement.classList.toggle('btn-primary');
+            buttonElement.classList.toggle('btn-secondary');
+            buttonElement.onclick = () => followUser(buttonElement, !isFollowing); // Toggle the function argument
+        } else {
+            alert('Failed to execute action: ' + data.message);
+        }
     })
     .catch(error => {
-      console.error('Error retrieving user ID:', error);
+        console.error('Error processing action:', error);
+        alert('An error occurred. Please try again.');
     });
 }
 
+
+// Auxiliary function to handle the follow request
 function postFollowRequest(followerId, followingId, buttonElement) {
-  fetch('/follow-user', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    body: JSON.stringify({ followerId, followingId })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      console.log('Follow successful');
-      buttonElement.textContent = 'Following'; // Update button text
-      buttonElement.classList.remove('btn-primary');
-      buttonElement.classList.add('btn-secondary');
-      buttonElement.disabled = true; // Disable button
-    } else {
-      console.log('Follow failed', data.message);
-    }
-  })
-  .catch(error => console.error('Error following user:', error));
+    fetch('/follow-user', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        credentials: 'include', // Ensures cookies, including session cookies, are sent
+        body: JSON.stringify({ followerId, followingId })
+    })
+    .then(response => {
+        if (!response.ok) {
+            // Throw an error to catch block if the response is not OK to handle HTTP errors (like 404, 500, etc.)
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            console.log('Follow successful');
+            buttonElement.textContent = 'Following'; // Update button text to indicate success
+            buttonElement.classList.remove('btn-primary');
+            buttonElement.classList.add('btn-secondary');
+            buttonElement.disabled = true; // Disable the button to prevent multiple requests
+        } else {
+            // Handle cases where the operation didn't succeed but the server still responded (e.g., logical errors)
+            console.error('Follow failed:', data.message);
+            alert('Failed to follow the user: ' + data.message); // Provide feedback on failure
+        }
+    })
+    .catch(error => {
+        // Catch and handle any errors that occur during fetching
+        console.error('Error following user:', error);
+        alert('An error occurred while trying to follow the user. Please try again.'); // Error feedback
+        buttonElement.textContent = 'Follow'; // Reset button text in case of error
+        buttonElement.classList.add('btn-primary');
+        buttonElement.classList.remove('btn-secondary');
+        buttonElement.disabled = false; // Re-enable the button so the user can try again
+    });
 }
+
+
 </script>
