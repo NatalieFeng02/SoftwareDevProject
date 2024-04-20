@@ -658,7 +658,7 @@ app.get('/analysis', async (req, res) => {
       title: decodeURIComponent(title),
       artist: decodeURIComponent(artist),
       album: decodeURIComponent(req.query.album),
-      userID: req.session.user.id,
+      userID: req.session.userId,
       analysisResults, // Pass the array of lyrics and analyses
       spotifyUri,
       albumCover,
@@ -672,7 +672,7 @@ app.get('/analysis', async (req, res) => {
       artist: decodeURIComponent(artist),
       album: decodeURIComponent(req.query.album),
       albumCover,
-      userID: req.session.user.id,
+      userID: req.session.userId,
       error: `An error occurred: ${error.message}`,
       analysisResults: [], // Ensure the template can handle an empty array
       dominantColor,
