@@ -1076,13 +1076,16 @@ app.get('/forgotpassword', (req, res) => {
 app.post('/forgotpassword', async (req, res) => {
     try {
       const { username, email, password } = req.body;
-      const existingUser = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [username]);
+      const existingUser = await db.oneOrNone("SELECT * FROM users WHERE username = $1 and email = $2", [username, email]);
       if (existingUser) {
-        
+        const hash = await bcrypt.hash(password, 10);
+        await db.any("update users set password = $1 where username = $2 and email = $3 returning * ;", [hash, username, email]);
+        res.redirect('resetsuccess');
       }
-      const hash = await bcrypt.hash(password, 10);
-      await db.any("update users set password = $1 where username = $2 and email = $3 returning * ;", [hash, username, email]);
-      res.redirect('resetsuccess');
+      else{
+        console.error("Error during registration:", error);
+        res.render('accountnotfound');
+      }
     } catch (error) {
       console.error("Error during registration:", error);
       res.render('accountnotfound');
