@@ -795,7 +795,7 @@ app.get('/background', async (req, res) => {
       artist: decodeURIComponent(artist),
       album: decodeURIComponent(album),
       userID: req.session.user.id,
-      cover: coverUrl,
+      albumCover: coverUrl,
       credits: credits,
       backgroundResults,
       dominantColor,
@@ -813,17 +813,18 @@ app.get('/background', async (req, res) => {
   }
 });
 
-
+// Client sends information from analysis page to database
 app.post('/save-analysis', async (req, res) => {
-  const {title, artist, analysisResults, userID} = req.body;
+  const {title, artist, album, albumCover, analysisResults, userID, dominantColor, spotifyUri} = req.body;
 
   const serializedAnalysis = JSON.stringify(analysisResults);
   try{
-    const insertQuery = `INSERT INTO analysis(title, artist, def_analysis, user_id) VALUES($1, $2, $3, $4)
-    ON CONFLICT (title, artist, user_id) DO UPDATE
+    const insertQuery = `INSERT INTO analysis(title, artist, album, "albumCover", def_analysis, 
+    user_id, "dominantColor", "spotifyUri") VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+    ON CONFLICT (title, artist, album, user_id) DO UPDATE
     SET def_analysis = EXCLUDED.def_analysis;
     `;
-  await db.query(insertQuery, [title, artist, serializedAnalysis, userID]);
+  await db.query(insertQuery, [title, artist, album, albumCover, serializedAnalysis, userID, dominantColor, spotifyUri]);
   res.json({status: 'success', message: 'Analysis saved successfully'});
 } catch (error) {
   console.error('Error saving analysis, please try again', error);
@@ -831,22 +832,100 @@ app.post('/save-analysis', async (req, res) => {
 };
 });
 
+// Client sends information from background page to database
 app.post('/save-background', async (req, res) => {
-  const {title, artist, backgroundResults, userID} = req.body;
+  console.log("Received credits: ", req.body.credits);
+  const {title, artist, album, albumCover, backgroundResults, userID, dominantColor, spotifyUri, credits} = req.body;
 
   const serializedBackground = JSON.stringify(backgroundResults);
+  const savedCredits = JSON.stringify(credits);
   try{
-    const insertQuery = `INSERT INTO analysis(title, artist, hist_analysis, user_id) VALUES($1, $2, $3, $4)
-    ON CONFLICT (title, artist, user_id) DO UPDATE
+    const insertQuery = `INSERT INTO analysis(title, artist, album, "albumCover", hist_analysis, 
+    user_id, "dominantColor", "spotifyUri", "credits") VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    ON CONFLICT (title, artist, album, user_id) DO UPDATE
     SET hist_analysis = EXCLUDED.hist_analysis;
     `;
-  await db.query(insertQuery, [title, artist, serializedBackground, userID]);
+  console.log("Saving credits: ", savedCredits);
+  await db.query(insertQuery, [title, artist, album, albumCover, serializedBackground, userID, dominantColor, spotifyUri, savedCredits]);
   res.json({status: 'success', message: 'Background saved successfully'});
 } catch (error) {
   console.error('Error saving background, please try again', error);
   res.status(500).json({status: 'error', message: 'Failed to save background'});
 };
 });
+
+// Loads the analysis page from database
+app.get('/saved-analysis', async (req, res) => {
+  const inNav = true;
+  const { title, artist, album, userID } = req.query;
+  console.log("Received parameters:", title, artist, album, userID)
+
+  if (!title || !artist || !album || !userID){
+    return res.status(400).send('Missing parameters from analysis');
+  }
+  try{
+    const query = 'SELECT * FROM analysis WHERE title = $1 AND artist = $2 AND album = $3 AND user_id = $4';
+    const result = await db.query(query, [title, artist, album, userID]);
+    console.log("Query result:", result);
+
+    const {albumCover, dominantColor, def_analysis: serializedAnalysis, spotifyUri} = result[0];
+    const analysisResults = JSON.parse(serializedAnalysis);
+
+    res.render('saved_analysis', {
+      title,
+      artist,
+      album,
+      userID,
+      analysisResults,
+      albumCover,
+      dominantColor,
+      spotifyUri,
+      inNav
+    });
+  }
+  catch(error){
+  console.error('Failed to fetch saved analysis:', error);
+  res.status(500).send('Failed to retrieve saved analysis');
+}
+});
+
+// Loads the background page from database
+app.get('/saved-background', async (req, res) => {
+  const inNav = true;
+  const { title, artist, album, userID } = req.query;
+  console.log("Received parameters:", title, artist, album, userID)
+
+  if (!title || !artist || !album || !userID){
+    return res.status(400).send('Missing parameters from analysis');
+  }
+  try{
+    const query = 'SELECT * FROM analysis WHERE title = $1 AND artist = $2 AND album = $3 AND user_id = $4';
+    const result = await db.query(query, [title, artist, album, userID]);
+    console.log("Retrieved credits: ", result[0]);
+    console.log("Query result:", result);
+
+    const {albumCover, dominantColor, hist_analysis: serializedBackground, spotifyUri, credits} = result[0];
+    const backgroundResults = JSON.parse(serializedBackground);
+
+    res.render('saved_background', {
+      title,
+      artist,
+      album,
+      userID,
+      backgroundResults,
+      albumCover,
+      dominantColor,
+      spotifyUri,
+      credits: JSON.parse(credits),
+      inNav
+    });
+  }
+  catch(error){
+  console.error('Failed to fetch saved background:', error);
+  res.status(500).send('Failed to retrieve saved background');
+}
+});
+
 //update username and email
 app.post('/accountinformation', async (req, res) => {
   if (!req.session.user) {

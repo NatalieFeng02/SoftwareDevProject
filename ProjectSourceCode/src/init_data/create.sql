@@ -66,8 +66,13 @@ CREATE TABLE analysis (
   user_id INT NOT NULL,
   title VARCHAR(100) NOT NULL,
   artist VARCHAR(100) NOT NULL,
+  album VARCHAR(100) NOT NULL,
+  "albumCover" VARCHAR(500),
+  "dominantColor" TEXT,
+  "spotifyUri" VARCHAR(255),
   def_analysis TEXT,
   hist_analysis TEXT,
+  credits JSON,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  UNIQUE (title, artist, user_id)
+  UNIQUE (title, artist, album, user_id)
 );

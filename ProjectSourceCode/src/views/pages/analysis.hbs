@@ -12,6 +12,7 @@
         data-album="{{album}}"
         data-album-cover="{{albumCover}}">Background</button>
       <button class = "btn btn-dark mt-3 success" id="saveAnalysisButton" onclick="saveAnalysis()">Save Analysis</button>
+      <button class="btn btn-dark mt-3" id="viewSavedAnalysisButton">View Saved Analysis</button>
     </div>
     <div id="spotify-embed">
       <!-- Spotify Embed Placeholder -->
@@ -200,8 +201,13 @@ document.addEventListener('DOMContentLoaded', function() {
       const analysisData = {
         title: '{{title}}',
         artist: '{{artist}}',
+        album: '{{album}}',
+        albumCover: '{{albumCover}}',
         analysisResults: {{{json analysisResults}}},
-        userID: {{{userID}}}
+        userID: {{{userID}}},
+        dominantColor: '{{dominantColor}}',
+        spotifyUri: '{{spotifyUri}}',
+        inNav: {{inNav}}
       };
 
       fetch('/save-analysis', {
@@ -225,5 +231,19 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('Error saving analysis. Please try again.');
       });
     };
+  });
+</script>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Existing saveAnalysis function...
+
+    // Function to handle "View Saved Analysis" button click
+    const viewSavedAnalysisButton = document.getElementById('viewSavedAnalysisButton');
+    viewSavedAnalysisButton.addEventListener('click', function() {
+      const userID = '{{userID}}'; // Assuming userID is available in the template data
+      window.location.href = `/saved-analysis?title=${encodeURIComponent('{{title}}')}&artist=${encodeURIComponent('{{artist}}')}&album=${encodeURIComponent('{{album}}')}&userID=${encodeURIComponent(userID)}`;
+    });
   });
 </script>

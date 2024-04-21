@@ -1,0 +1,242 @@
+{{> header}}
+
+<div class="container my-5">
+  <div class="row" id="top">
+    <div  id="title">
+      <h2 class="font-weight-bold" style="font-size: 48px;">{{title}}</h2>
+      <p class="font-italic" style="font-size: 24px;">{{artist}}</p>
+      <p style="font-size: 18px;">{{album}}</p>
+    </div>
+    <div id="spotify-embed">
+      <!-- Spotify Embed Placeholder -->
+      {{#if spotifyUri}}
+        <!-- Correct usage -->
+        <iframe src="https://open.spotify.com/embed/track/{{{spotifyUri}}}" width="600" height="352" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+      {{/if}}
+    </div> 
+  </div>
+
+  <!-- Analysis Section -->
+  <div class="row mt-5" id="outer-div">
+    {{#each analysisResults}}
+      <div class="col-12 mb-4">
+        <div class="row">
+          <div class="col-md-6" id="lyrics">
+            <pre>{{{this.lyric}}}</pre>
+          </div>
+          <div class="col-md-6" id="analysis">
+            <p>{{{this.analysis}}}</p>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+</div>
+
+{{> footer}}
+
+
+<!-- Additional styles -->
+<style>
+  body {
+    font-family: Arial, sans-serif; /* or the font you're using */
+  }
+  .btn-dark {
+    background-color: #000;
+    color: #fff;
+    border: none;
+  }
+  .btn-dark:hover {
+    background-color: #333;
+  }
+
+  .col-md-6 {
+    display: flex;
+    align-items: center;
+  }
+  /* Add other styling as needed */
+
+
+    @font-face {
+    font-family: 'Futura';
+    src: url('../../public/fonts/futura/FUTURA45LIGHT.TTF') format('TTF'),
+        
+    font-weight: light;
+    font-style: normal;
+    }
+
+
+  #analysis p{
+    padding: 20px;
+    font-family: 'Futura', Arial, sans-serif;
+    border: 6px solid gray;
+    margin-left: 30px;
+    margin-right: 10px;
+  }
+
+  #lyrics pre {
+    text-decoration: underline;
+    text-decoration-color: lightgray;
+    text-decoration-thickness: 1px;
+    overflow: auto;
+    /*font-family: 'Courier New', Courier, monospace;*/
+    font-size: 18px;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    font-weight: 500;
+
+    white-space: pre-wrap; /* Wrap text to prevent horizontal scrolling */
+    word-break: break-word; /* Break long words if necessary to prevent horizontal scrolling */
+    overflow-x: hidden;
+    height: auto;
+    margin-right: 20px;
+    margin-left: 10px;
+  }  
+
+    .col-md-8 {
+        width: 400px;
+    }
+
+    #top {
+    display: flex;
+    flex-wrap: wrap; /* Allows items to wrap if the viewport is too narrow */   
+    }
+
+    #title, #spotify-embed {
+        flex: 1; /* Allows both children to grow and occupy available space */
+        width: auto;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Specific styles for Spotify embed to control its maximum size */
+    #spotify-embed iframe {
+        max-width: 100%; /* Ensures the iframe is responsive and does not overflow its container */
+        height: 352px; /* Adjust height as needed, or keep it proportionate */
+    }
+
+    /* Optional: Add some padding or margin around the iframe for spacing */
+    #spotify-embed iframe {
+        margin: 0 10px;
+    }
+
+    #title {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%; /* Set a specific height or make it relative to its parent */
+        text-align: center;
+        height: 352px;
+    }
+
+    /* Use flexbox for the top row */
+#top {
+  display: flex;
+  align-items: center; /* This will vertically center the children */
+  justify-content: space-around; /* This will give space around the children */
+}
+
+/* Center content within the title section */
+#title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* This will vertically center the inner content */
+  align-items: center; /* This will horizontally center the inner content */
+  text-align: center;
+}
+
+/* Adjust the Spotify embed */
+#spotify-embed {
+  display: flex;
+  justify-content: center; /* Horizontally center the iframe */
+  align-items: center; /* Vertically center the iframe */
+}
+
+/* Ensure the iframe is responsive */
+#spotify-embed iframe {
+  width: 100%;
+  max-width: 600px; /* You can adjust this value */
+  height: 352px; /* Adjust height as needed */
+}
+
+
+
+
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const backgroundButton = document.querySelector('.background-button');
+    
+    backgroundButton.addEventListener('click', function() {
+        const title = encodeURIComponent(this.getAttribute('data-title'));
+        const artist = encodeURIComponent(this.getAttribute('data-artist'));
+        const album = encodeURIComponent(this.getAttribute('data-album'));
+        const albumCover = encodeURIComponent(this.getAttribute('data-album-cover'));
+        
+        // Construct the URL for the /background route including all necessary parameters
+        const backgroundUrl = `/background?title=${title}&artist=${artist}&album=${album}&albumCover=${albumCover}`;
+
+        // Now construct the loading URL, directing it to the /background route through /loading
+        const loadingUrlBackground = `/loading?redirectUrl=${encodeURIComponent(backgroundUrl)}`;
+
+        // Redirect to the /loading route, which will then redirect to /background
+        window.location.href = loadingUrlBackground;
+    });
+});
+
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.saveAnalysis = function() {
+      const analysisData = {
+        title: '{{title}}',
+        artist: '{{artist}}',
+        album: '{{album}}',
+        albumCover: '{{albumCover}}',
+        analysisResults: {{{json analysisResults}}},
+        userID: {{{userID}}},
+        dominantColor: '{{dominantColor}}',
+        spotifyUri: '{{spotifyUri}}',
+        inNav: {{inNav}}
+      };
+
+      fetch('/save-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify(analysisData)
+        })
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === 'success') {
+          alert('Analysis saved successfully!');
+        } 
+        else {
+          alert('Failed to save analysis.');
+        }
+      })
+      .catch(error => {
+        console.error('Error saving analysis:', error);
+        alert('Error saving analysis. Please try again.');
+      });
+    };
+  });
+</script>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Existing saveAnalysis function...
+
+    // Function to handle "View Saved Analysis" button click
+    const viewSavedAnalysisButton = document.getElementById('viewSavedAnalysisButton');
+    viewSavedAnalysisButton.addEventListener('click', function() {
+      const userID = '{{userID}}'; // Assuming userID is available in the template data
+      window.location.href = `/saved-analysis?title=${encodeURIComponent('{{title}}')}&artist=${encodeURIComponent('{{artist}}')}&album=${encodeURIComponent('{{album}}')}&userID=${encodeURIComponent(userID)}`;
+    });
+  });
+</script>
