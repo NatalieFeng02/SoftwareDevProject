@@ -25,8 +25,12 @@ const app = express();
 const hbsHelper = {
   json: function (context) {
     return JSON.stringify(context);
+  },
+  encodeURIComponent: function(str){
+    return encodeURIComponent(str);
   }
 };
+
 
 
 const openai = new OpenAI(apiKey);
@@ -816,6 +820,7 @@ app.get('/background', async (req, res) => {
 // Client sends information from analysis page to database
 app.post('/save-analysis', async (req, res) => {
   const {title, artist, album, albumCover, analysisResults, userID, dominantColor, spotifyUri} = req.body;
+  console.log("Received for saving:", req.body);
 
   const serializedAnalysis = JSON.stringify(analysisResults);
   try{
@@ -824,7 +829,7 @@ app.post('/save-analysis', async (req, res) => {
     ON CONFLICT (title, artist, album, user_id) DO UPDATE
     SET def_analysis = EXCLUDED.def_analysis;
     `;
-  await db.query(insertQuery, [title, artist, album, albumCover, serializedAnalysis, userID, dominantColor, spotifyUri]);
+  const result = await db.query(insertQuery, [title, artist, album, albumCover, serializedAnalysis, userID, dominantColor, spotifyUri]);
   res.json({status: 'success', message: 'Analysis saved successfully'});
 } catch (error) {
   console.error('Error saving analysis, please try again', error);
@@ -853,6 +858,26 @@ app.post('/save-background', async (req, res) => {
   res.status(500).json({status: 'error', message: 'Failed to save background'});
 };
 });
+
+app.get('/account_analyses', async (req, res) => {
+  try{
+    const userID = req.session.userId;
+    console.log("User ID:", userID);
+    const query = 'SELECT title, artist, album, "albumCover" FROM analysis WHERE user_id = $1';
+    const analysisResults = await db.query(query, [userID]);
+    console.log(analysisResults)
+    if (analysisResults.length > 0) {
+      res.render('account_analyses', {analysisResults});
+    } else {
+      res.render('account_analyses', {analysisResults: [], message: 'No analyses found.' });
+    }
+    res.render('account_analyses', {analysisResults});
+  }
+  catch(error){
+    console.error('Error fetching saved artists', error);
+    res.status(500).send('Server error');
+  }
+})
 
 // Loads the analysis page from database
 app.get('/saved-analysis', async (req, res) => {

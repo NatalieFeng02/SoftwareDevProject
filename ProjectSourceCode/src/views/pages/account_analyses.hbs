@@ -1,0 +1,93 @@
+{{> in_nav}}
+
+
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Saved Analyses</h2>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col" class="album-cover-header"></th> <!-- Empty header for album cover -->
+          <th scope="col">Title</th>
+          <th scope="col">Artist</th>
+          <th scope="col">Album</th>
+          <th scope="actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each analysisResults}}
+        <tr>
+          <td class="album-cover-cell">
+            <img src="{{albumCover}}" alt="{{title}}" class="album-cover">
+          </td>
+          <td>{{title}}</td>
+          <td>{{artist}}</td>
+          <td>{{album}}</td>
+          <td>
+            <a href="/saved-analysis?title={{encodeURIComponent title}}&artist={{encodeURIComponent artist}}&album={{encodeURIComponent album}}&userID={{userID}}" class="btn btn-primary">View Analysis</a>
+            <a href="/saved-background?title={{encodeURIComponent title}}&artist={{encodeURIComponent artist}}&album={{encodeURIComponent album}}&userID={{userID}}" class="btn btn-secondary">View Background</a>
+          </td>
+        </tr>
+        {{else}}
+        <tr><td colspan="4">No saved analysis found.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+
+      
+    </ul>
+  </nav>
+</div>
+
+{{> footer}}
+
+<!-- Additional CSS for the album cover images -->
+<style>
+
+  #pages {
+    font-family: sans-serif;
+  }
+
+
+  .album-cover {
+    width: 50px; /* Adjust size as needed */
+    height: auto;
+    margin-right: 10px;
+  }
+  .album-cover-header {
+    width: 1%; /* Minimize the width of the album cover header */
+    white-space: nowrap; /* Ensure the header does not expand */
+  }
+  .album-cover-cell {
+    padding-left: 10px; /* Add some padding to the left of the album cover image */
+  }
+
+  .table td {
+    vertical-align: middle;
+  }
+
+   .clickable {
+    cursor: pointer; /* Changes cursor to indicate the item is clickable */
+  }
+  .result-button {
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 0;
+    margin: 0;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    display: block;
+    width: 100%;
+  }
+  .result-button:hover {
+    background-color: #f8f9fa; /* Light color on hover, adjust as needed */
+  }
+  /* You might want to add :focus styles if you want to keep the button-like interaction */
+  .result-button:focus {
+    outline: none; /* Removes the default focus outline */
+    /* You can add custom focus styles if needed */
+  }
+
