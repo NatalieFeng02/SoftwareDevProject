@@ -304,20 +304,20 @@ app.post("/login", async (req, res) => {
       } else {
         // Providing feedback directly in the login form for incorrect password
         res.render("login", {
-          message: "Incorrect username or password. Please try again.",
+          incmessage: "Incorrect username or password. Please try again.",
         });
       }
     } else {
       // User not found, offer link to registration
       res.render("login", {
-        message: "User not found. Please <a href='/register'>register</a>.",
+        nfmessage: "User not found. Try again or create a new account.",
       });
     }
   } catch (error) {
     console.error("Error during login:", error);
     // General error handling for the login process
     res.render("login", {
-      message: "An error occurred. Please try again later.",
+      errmessage: "An error occurred. Please try again later.",
     });
   }
 });
