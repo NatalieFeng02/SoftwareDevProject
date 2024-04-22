@@ -351,7 +351,7 @@ app.post("/create", async (req, res) => {
     const existingUser = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [username]);
     if (existingUser) {
       return res.render("create", {
-        message: "Username already exists. Please choose a different username.",
+        existmessage: "Username already exists. Please choose a different username.",
       });
     }
     const hash = await bcrypt.hash(password, 10);
@@ -360,7 +360,7 @@ app.post("/create", async (req, res) => {
   } catch (error) {
     console.error("Error during registration:", error);
     res.render('create', {
-      message: "Registration failed. Please try again.",
+      failmessage: "Registration failed. Please try again.",
     });
   }
 });

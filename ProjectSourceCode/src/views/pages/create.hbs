@@ -6,6 +6,8 @@
 
 <div class="vh-100 d-flex flex-column justify-content-center align-items-center text-center" id="container">
   <h5>Create an account with us to begin analyzing!</h5>
+   <div id="error-message" class="text-danger mb-3" style="color:red">{{existmessage}}</div>
+  <div id="error-message" class="text-danger mb-3" style="color:red">{{failmessage}}</div>
   <form method="POST" action="/create" class="w-100" style="max-width: 320px;">
     <div class="mb-3">
       <br>
@@ -24,6 +26,7 @@
     <button type="submit" class="btn btn-primary w-100 mb-3">Create Account</button>
     <br>
     <p>Already have an account? <a href="/login">Login</a></p>
+    <p>If your account is successfully created, you will automatically be redirected to the login screen.</p>
   </form>
 </div>
 </div>
