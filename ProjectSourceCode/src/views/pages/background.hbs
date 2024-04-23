@@ -39,6 +39,11 @@
         <img src="{{albumCover}}" alt="Album Cover" style="width: 300px;">
     </div>
 </div>
+  <div class="refresh-container">
+    <button id="refresh-button" class="refresh-button">
+      <img src="img/refresh.png" alt="Refresh">
+    </button>
+  </div>
 <div id="background-analysis">
     {{#each backgroundResults}}
         <div class="background-section">
@@ -49,10 +54,31 @@
 </div>
 
 <style>
+
+    .refresh-container {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        padding: none;
+    }
+
+    .refresh-button {
+        border: none;
+        background-color: transparent;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .refresh-button img {
+        width: 20px;
+        height: 20px;
+    }
     #top {
         display: flex;
         justify-content: space-between;
         margin: 20px;
+        margin-bottom: 0px;
     }
 
 
@@ -132,6 +158,8 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    const refreshButton = document.getElementById('refresh-button');
+
     window.saveBackground = function() {
       const backgroundData = {
         title: '{{title}}',
@@ -167,5 +195,20 @@
         alert('Error saving background. Please try again.');
       });
     };
+        refreshButton.addEventListener('click', function() {
+      const title = encodeURIComponent('{{title}}');
+      const artist = encodeURIComponent('{{artist}}');
+      const album = encodeURIComponent('{{album}}');
+      const albumCover = encodeURIComponent('{{albumCover}}');
+
+       // Construct the URL for the /background route including all necessary parameters
+        const backgroundUrl = `/background?title=${title}&artist=${artist}&album=${album}&albumCover=${albumCover}`;
+
+        // Now construct the loading URL, directing it to the /background route through /loading
+        const loadingUrlBackground = `/loading?redirectUrl=${encodeURIComponent(backgroundUrl)}`;
+
+      // Redirect to the constructed URL
+      window.location.href = loadingUrlBackground;
+  });
   });
 </script>

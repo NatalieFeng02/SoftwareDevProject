@@ -24,6 +24,13 @@
     </div> 
   </div>
 
+  <div class="refresh-container">
+  <button id="refresh-button" class="refresh-button">
+    <img src="img/refresh.png" alt="Refresh">
+  </button>
+  <!-- Other content of the div can go here -->
+</div>
+
   <!-- Analysis Section -->
   <div class="row mt-5" id="outer-div">
     {{#each analysisResults}}
@@ -46,6 +53,31 @@
 
 <!-- Additional styles -->
 <style>
+
+  #outer-div {
+    margin-top: 10px !important;
+  }
+
+  .refresh-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .refresh-button {
+    border: none;
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .refresh-button img {
+    width: 20px;
+    height: 20px;
+  }
+
   body {
     font-family: Arial, sans-serif; /* or the font you're using */
   }
@@ -189,6 +221,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const backgroundButton = document.querySelector('.background-button');
+    const refreshButton = document.getElementById('refresh-button');
     
     backgroundButton.addEventListener('click', function() {
         const title = encodeURIComponent(this.getAttribute('data-title'));
@@ -205,6 +238,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // Redirect to the /loading route, which will then redirect to /background
         window.location.href = loadingUrlBackground;
     });
+
+    refreshButton.addEventListener('click', function() {
+      const title = encodeURIComponent('{{title}}');
+      const artist = encodeURIComponent('{{artist}}');
+      const album = encodeURIComponent('{{album}}');
+      const albumCover = encodeURIComponent('{{albumCover}}');
+
+      // Construct the loading URL
+      const loadingUrlAnalysis = `/loading?redirectUrl=${encodeURIComponent(`/analysis?title=${title}&artist=${artist}&album=${album}&albumCover=${albumCover}`)}`;
+
+      // Redirect to the constructed URL
+      window.location.href = loadingUrlAnalysis;
+  });
 });
 
 </script>
