@@ -54,8 +54,14 @@ app.use(
     secret: process.env.SESSION_SECRET,
     saveUninitialized: false,
     resave: false,
+    cookie: {
+      expires: null,  // Ensures the cookie expires with the session
+      maxAge: null    // No maximum age, cookie lives indefinitely until browser closes
+    }
   })
 );
+
+
 
 app.use(
   bodyParser.urlencoded({
@@ -600,108 +606,96 @@ function cleanArtist(artist) {
   return artists[0];
 }
 
+const globalUsedFirstTwoWords = new Set();
+
 app.get('/analysis', async (req, res) => {
   if (!req.session.user) {
-      return res.redirect('/login');
+    return res.redirect('/login');
   }
 
   const inNav = true;
   const { title, artist, albumCover } = req.query;
-  console.log("Query Parameters:", req.query);
   if (!title || !artist) {
-      return res.status(400).send('Song title and artist are required');
+    return res.status(400).send('Song title and artist are required');
   }
+
+  // Decoding and cleaning input data
   const cleanedTitle = cleanTitle(decodeURIComponent(title));
   const cleanedArtist = cleanArtist(decodeURIComponent(artist));
+  
+  // Asynchronous calls for data needed further in the code
   const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(cleanedArtist)}/${encodeURIComponent(cleanedTitle)}`;
-  const prompt = `Conclude your analysis in a complete sentence in 180 tokens or less. This is a section of the lyrics from "${title}" by "${artist}". Do NOT mention the song or the album in the first sentence of the paragraph. Be creative with your opening line. Give me interesting information about this section of the lyrics: It could be analysis of the meaning, it could be historical context or context to the artist, it could be analysis of the literary devices used, it could be an anecdote behind the lyrics, or it could be what/who the lyrics were inspired by... Just make it interesting. However, if the section is brief or if it is just ad libs, then keep your analysis in 17 words or less. ONLY talk about this section of lyrics.`;
-  console.log(`Song: "${title}" by "${artist}"`);
+  const dominantColorPromise = getDominantColor(albumCover);
+  const lyricsPromise = fetch(apiUrl).then(response => response.json());
+  const spotifyPromise = spotifyApi.searchTracks(`${title} ${artist}`);
 
-  try {
-      const dominantColor = await getDominantColor(albumCover);
-      console.log('Dominant Color:', dominantColor);
+  // Execute all independent promises in parallel
+  const [dominantColor, lyricsData, spotifyResponse] = await Promise.all([dominantColorPromise, lyricsPromise, spotifyPromise]);
 
-      const lyricsResponse = await fetch(apiUrl);
-      if (!lyricsResponse.ok) throw new Error(`Lyrics fetch failed: ${lyricsResponse.statusText}`);
-
-      const lyricsData = await lyricsResponse.json();
-      if (!lyricsData.lyrics) throw new Error("Lyrics not found.");
-
-      const cleanedLyrics = cleanLyrics(lyricsData.lyrics, title, artist);
-      const lyricsParagraphs = cleanedLyrics.split('\n\n').filter(paragraph => paragraph.trim() !== '');
-      const analysisResults = [];
-      const usedFirstTwoWords = new Set();  // Set to track unique first two words
-
-      await Promise.all(lyricsParagraphs.map(async (paragraph, index) => {
-          let analysis;
-          let firstTwoWords;
-          do {
-              const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                  method: 'POST',
-                  headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${apiKey}`,
-                  },
-                  body: JSON.stringify({
-                      "model": "gpt-4-turbo",
-                      "messages": [
-                          { "role": "system", "content": prompt },
-                          { "role": "user", "content": paragraph }
-                      ],
-                      "temperature": 0.7,
-                      "max_tokens": 180
-                  }),
-              });
-
-              const json = await response.json();
-              analysis = json.choices[0].message.content;
-              firstTwoWords = analysis.split(' ').slice(0, 2).join(' ');
-          } while (usedFirstTwoWords.has(firstTwoWords));  // Ensure first two words are unique
-          usedFirstTwoWords.add(firstTwoWords);
-          analysisResults.push({ index, lyric: paragraph, analysis });
-      }));
-
-      // Sort the results based on the original index to maintain order
-      analysisResults.sort((a, b) => a.index - b.index);
-
-      let spotifyUri = '';
-      try {
-          const spotifyResponse = await spotifyApi.searchTracks(`${title} ${artist}`);
-          if (spotifyResponse.body.tracks.items.length > 0) {
-              spotifyUri = spotifyResponse.body.tracks.items[0].uri; // Get the URI of the first track
-          }
-      } catch (err) {
-          console.error('Spotify search failed:', err);
-      }
-      
-      spotifyUri = stripSpotifyUri(spotifyUri);
-      console.log(spotifyUri);
-      res.render('analysis', {
-          title: decodeURIComponent(title),
-          artist: decodeURIComponent(artist),
-          album: decodeURIComponent(req.query.album),
-          userID: req.session.userId,
-          analysisResults, // Pass the array of lyrics and analyses
-          spotifyUri,
-          albumCover,
-          dominantColor,
-          inNav
-      });
-  } catch (error) {
-      console.error('Error:', error);
-      res.render('analysis', {
-          title: decodeURIComponent(title),
-          artist: decodeURIComponent(artist),
-          album: decodeURIComponent(req.query.album),
-          albumCover,
-          userID: req.session.userId,
-          error: `An error occurred: ${error.message}`,
-          analysisResults: [], // Ensure the template can handle an empty array
-          dominantColor,
-          inNav
-      });
+  if (!lyricsData.lyrics) {
+    console.error("Lyrics not found.");
+    return res.status(404).send("Lyrics not found.");
   }
+
+  const cleanedLyrics = cleanLyrics(lyricsData.lyrics, title, artist);
+  const lyricsParagraphs = cleanedLyrics.split('\n\n').filter(paragraph => paragraph.trim() !== '');
+  const analysisResults = [];
+  const usedFirstTwoWords = new Set();
+
+  await Promise.all(lyricsParagraphs.map(async (paragraph, index) => {
+    let analysis;
+    let firstTwoWords;
+    do {
+      const restrictions = Array.from(usedFirstTwoWords).join('|');
+      const prompt = `Conclude your analysis in a complete sentence in 180 tokens or less. This is a section of the lyrics from "${title}" by "${artist}". Do NOT mention the song or the album in the first sentence of the paragraph. Your paragraph should NOT start with any of these phrases: "${restrictions}". Be creative with your opening line to avoid these. Provide interesting information about this section of the lyrics, which may include: the meaning, historical context, literary devices, anecdotes, or inspirations. Keep it under 17 words if brief, simple or if it is just adlibs.`;
+      
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          "model": "gpt-4-turbo",
+          "messages": [
+            { "role": "system", "content": prompt },
+            { "role": "user", "content": paragraph }
+          ],
+          "temperature": 0.7,
+          "max_tokens": 180
+        }),
+      });
+
+      const json = await response.json();
+      analysis = json.choices[0].message.content;
+      firstTwoWords = analysis.split(' ').slice(0, 2).join(' ');
+    } while (usedFirstTwoWords.has(firstTwoWords));
+    usedFirstTwoWords.add(firstTwoWords);
+    analysisResults.push({ index, lyric: paragraph, analysis });
+  }));
+
+  // Determine the Spotify URI
+  let spotifyUri = '';
+  if (spotifyResponse.body.tracks.items.length > 0) {
+    spotifyUri = stripSpotifyUri(spotifyResponse.body.tracks.items[0].uri);
+  }
+
+  analysisResults.sort((a, b) => a.index - b.index);
+
+  // Render the analysis page with the results
+  res.render('analysis', {
+    title: decodeURIComponent(title),
+    artist: decodeURIComponent(artist),
+    album: decodeURIComponent(req.query.album),
+    userID: req.session.userId,
+    analysisResults,
+    spotifyUri,
+    albumCover,
+    dominantColor,
+    inNav
+  });
 });
+
 
 
 

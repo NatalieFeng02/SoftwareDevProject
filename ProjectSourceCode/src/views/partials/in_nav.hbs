@@ -18,7 +18,7 @@
           </li>
         </ul>
 
-        <div class="dropdown show">
+        <div class="dropdown show {{#if inNav}}dropdown-to-left{{/if}}">
           <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             {{username}}
           </a>
@@ -41,6 +41,12 @@
     background-color: #FF5733;
   }
   */
+
+.dropdown-to-left .dropdown-menu {
+    /* Adjust the positioning as necessary to make the dropdown appear on the left */
+    right: 0;
+    left: auto;
+}
 
   
   #logo {
