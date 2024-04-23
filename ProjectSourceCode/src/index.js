@@ -884,16 +884,12 @@ app.get('/account_analyses', async (req, res) => {
   }
   try{
     const userID = req.session.userId;
+
     console.log("User ID:", userID);
     const query = 'SELECT title, artist, album, "albumCover" FROM analysis WHERE user_id = $1';
     const analysisResults = await db.query(query, [userID]);
     console.log(analysisResults)
-    if (analysisResults.length > 0) {
-      res.render('account_analyses', {analysisResults});
-    } else {
-      res.render('account_analyses', {analysisResults: [], message: 'No analyses found.' });
-    }
-    res.render('account_analyses', {analysisResults});
+    res.render('account_analyses', {analysisResults, userID: userID});
   }
   catch(error){
     console.error('Error fetching saved artists', error);
@@ -905,7 +901,7 @@ app.get('/account_analyses', async (req, res) => {
 app.get('/saved-analysis', async (req, res) => {
   const inNav = true;
   const { title, artist, album, userID } = req.query;
-  console.log("Received parameters:", title, artist, album, userID)
+  console.log("Received parameters: ", req.query);
 
   if (!title || !artist || !album || !userID){
     return res.status(400).send('Missing parameters from analysis');

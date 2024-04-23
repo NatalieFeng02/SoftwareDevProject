@@ -14,7 +14,6 @@
       <button id="saveAnalysisButton" onclick="saveAnalysis()">
         <img src="img/save.png" alt="Save Analysis"/>
       </button>
-      <button class="btn btn-dark mt-3" id="viewSavedAnalysisButton">View Saved Analysis</button>
     </div>
     <div id="spotify-embed">
       <!-- Spotify Embed Placeholder -->
@@ -250,15 +249,3 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    // Existing saveAnalysis function...
-
-    // Function to handle "View Saved Analysis" button click
-    const viewSavedAnalysisButton = document.getElementById('viewSavedAnalysisButton');
-    viewSavedAnalysisButton.addEventListener('click', function() {
-      const userID = '{{userID}}'; // Assuming userID is available in the template data
-      window.location.href = `/saved-analysis?title=${encodeURIComponent('{{title}}')}&artist=${encodeURIComponent('{{artist}}')}&album=${encodeURIComponent('{{album}}')}&userID=${encodeURIComponent(userID)}`;
-    });
-  });
-</script>

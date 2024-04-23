@@ -39,7 +39,6 @@
         <img src="{{albumCover}}" alt="Album Cover" style="width: 300px;">
     </div>
 </div>
-<button class="btn btn-dark mt-3" id="viewSavedBackgroundButton">View Saved Background</button>
 <div id="background-analysis">
     {{#each backgroundResults}}
         <div class="background-section">
@@ -168,18 +167,5 @@
         alert('Error saving background. Please try again.');
       });
     };
-  });
-</script>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    // Existing saveBackground function...
-
-    // Function to handle "View Saved Analysis" button click
-    const viewSavedBackgroundButton = document.getElementById('viewSavedBackgroundButton');
-    viewSavedBackgroundButton.addEventListener('click', function() {
-      const userID = '{{userID}}'; // Assuming userID is available in the template data
-      window.location.href = `/saved-background?title=${encodeURIComponent('{{title}}')}&artist=${encodeURIComponent('{{artist}}')}&album=${encodeURIComponent('{{album}}')}&userID=${encodeURIComponent(userID)}`;
-    });
   });
 </script>

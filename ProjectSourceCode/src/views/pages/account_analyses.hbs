@@ -2,6 +2,7 @@
 
 
 <div class="container mt-5">
+  <script>console.log('UserID from template:', '{{userID}}');</script>
   <h2 class="text-center mb-4">Saved Analyses</h2>
   <div class="table-responsive">
     <table class="table">
@@ -24,8 +25,8 @@
           <td>{{artist}}</td>
           <td>{{album}}</td>
           <td>
-            <a href="/saved-analysis?title={{encodeURIComponent title}}&artist={{encodeURIComponent artist}}&album={{encodeURIComponent album}}&userID={{userID}}" class="btn btn-primary">View Analysis</a>
-            <a href="/saved-background?title={{encodeURIComponent title}}&artist={{encodeURIComponent artist}}&album={{encodeURIComponent album}}&userID={{userID}}" class="btn btn-secondary">View Background</a>
+            <a href="/saved-analysis?title={{encodeURIComponent title}}&artist={{encodeURIComponent artist}}&album={{encodeURIComponent album}}&userID={{../userID}}" class="btn btn-primary">View Analysis</a>
+            <a href="/saved-background?title={{encodeURIComponent this.title}}&artist={{encodeURIComponent this.artist}}&album={{encodeURIComponent this.album}}&userID={{../userID}}" class="btn btn-secondary">View Background</a>
           </td>
         </tr>
         {{else}}
@@ -90,4 +91,4 @@
     outline: none; /* Removes the default focus outline */
     /* You can add custom focus styles if needed */
   }
-
+</style>
