@@ -35,11 +35,6 @@
         <img src="{{albumCover}}" alt="Album Cover" style="width: 300px;">
     </div>
 </div>
-   <div class="refresh-container">
-    <button id="refresh-button" class="refresh-button">
-      <img src="img/refresh.png" alt="Refresh">
-    </button>
-  </div>
 <div id="background-analysis">
     {{#each backgroundResults}}
         <div class="background-section">
@@ -50,27 +45,6 @@
 </div>
 
 <style>
-
-    .refresh-container {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        padding: none;
-    }
-
-    .refresh-button {
-        border: none;
-        background-color: transparent;
-        padding: 0;
-        margin: 0;
-        cursor: pointer;
-    }
-
-    .refresh-button img {
-        width: 20px;
-        height: 20px;
-    }
-
     #top {
         display: flex;
         justify-content: space-between;
@@ -141,20 +115,54 @@
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const refreshButton = document.getElementById('refresh-button');
+  document.addEventListener('DOMContentLoaded', function () {
+    window.saveBackground = function() {
+      const backgroundData = {
+        title: '{{title}}',
+        artist: '{{artist}}',
+        album: '{{album}}',
+        albumCover: '{{albumCover}}',
+        backgroundResults: {{{json backgroundResults}}},
+        userID: {{{userID}}},
+        dominantColor: '{{dominantColor}}',
+        spotifyUri: '{{spotifyUri}}',
+        credits: {{{json credits}}},
+        inNav: {{inNav}}
+      };
 
-    refreshButton.addEventListener('click', function() {
-        const title = encodeURIComponent('{{title}}');
-        const artist = encodeURIComponent('{{artist}}');
-        const album = encodeURIComponent('{{album}}');
-        const albumCover = encodeURIComponent('{{albumCover}}');
+      fetch('/save-background', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify(backgroundData)
+        })
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === 'success') {
+          alert('Background saved successfully!');
+        } 
+        else {
+          alert('Failed to save background.');
+        }
+      })
+      .catch(error => {
+        console.error('Error saving background:', error);
+        alert('Error saving background. Please try again.');
+      });
+    };
+  });
+</script>
 
-        // Construct the URL for refreshing the background
-        const refreshUrlBackground = `/loading?redirectUrl=${encodeURIComponent(`/background?title=${title}&artist=${artist}&album=${album}&albumCover=${albumCover}`)}`;
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Existing saveBackground function...
 
-        // Redirect to the constructed URL
-        window.location.href = refreshUrlBackground;
+    // Function to handle "View Saved Analysis" button click
+    const viewSavedBackgroundButton = document.getElementById('viewSavedBackgroundButton');
+    viewSavedBackgroundButton.addEventListener('click', function() {
+      const userID = '{{userID}}'; // Assuming userID is available in the template data
+      window.location.href = `/saved-background?title=${encodeURIComponent('{{title}}')}&artist=${encodeURIComponent('{{artist}}')}&album=${encodeURIComponent('{{album}}')}&userID=${encodeURIComponent(userID)}`;
     });
-});
+  });
 </script>
