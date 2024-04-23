@@ -11,6 +11,7 @@
           <th scope="col">Title</th>
           <th scope="col">Artist</th>
           <th scope="col">Album</th>
+          <th scope="actions">Saved</th>
         </tr>
       </thead>
       <tbody>
@@ -22,6 +23,14 @@
           <td><div class="result-button" data-type="title">{{this.title}}</div></td>
           <td><div class="result-button" data-type="artist">{{this.artist}}</div></td>
           <td><div class="result-button" data-type="album">{{this.album}}</div></td>
+          <td>
+            {{#if this.hasDefAnalysis}}
+            <a href="/saved-analysis?title={{encodeURIComponent title}}&artist={{encodeURIComponent artist}}&album={{encodeURIComponent album}}&userID={{../userID}}" class="btn btn-primary">Analysis</a>
+            {{/if}}
+            {{#if this.hasHistAnalysis}}
+            <a href="/saved-background?title={{encodeURIComponent this.title}}&artist={{encodeURIComponent this.artist}}&album={{encodeURIComponent this.album}}&userID={{../userID}}" class="btn btn-secondary">Background</a>
+            {{/if}}
+          </td>
         </tr>
         {{/each}}
       </tbody>
