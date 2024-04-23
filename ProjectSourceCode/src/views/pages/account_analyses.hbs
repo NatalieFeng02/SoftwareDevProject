@@ -25,8 +25,12 @@
           <td>{{artist}}</td>
           <td>{{album}}</td>
           <td>
+            {{#if def_analysis}}
             <a href="/saved-analysis?title={{encodeURIComponent title}}&artist={{encodeURIComponent artist}}&album={{encodeURIComponent album}}&userID={{../userID}}" class="btn btn-primary">View Analysis</a>
+            {{/if}}
+            {{#if hist_analysis}}
             <a href="/saved-background?title={{encodeURIComponent this.title}}&artist={{encodeURIComponent this.artist}}&album={{encodeURIComponent this.album}}&userID={{../userID}}" class="btn btn-secondary">View Background</a>
+            {{/if}}
           </td>
         </tr>
         {{else}}
@@ -36,7 +40,7 @@
     </table>
   </div>
 
-      
+
     </ul>
   </nav>
 </div>
