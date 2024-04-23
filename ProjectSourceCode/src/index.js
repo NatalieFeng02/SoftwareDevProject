@@ -151,6 +151,11 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/search', async (req, res) => {
+
+  if (!req.session.user) {
+    return res.redirect('/login');
+  }
+
   try {
     const playlistData = await fetchAllPlaylistTracks('1DPLMFnJ3F6iOkDmlEzggq'); //fetches playlist for search suggestions
     // Log the data to see what's being passed
@@ -162,6 +167,10 @@ app.get('/search', async (req, res) => {
 });
 
 app.get('/search_users', async (req, res) => {
+  if (!req.session.user) {
+    return res.redirect('/login');
+  }
+
   try {
     const playlistData = await fetchAllPlaylistTracks('1DPLMFnJ3F6iOkDmlEzggq'); //fetches playlist for search suggestions
     // Log the data to see what's being passed
@@ -372,6 +381,11 @@ app.post("/create", async (req, res) => {
 
 
 app.get('/results', async (req, res) => {
+
+  if (!req.session.user) {
+    return res.redirect('/login');
+  }
+
   const searchQuery = req.query.searchQuery || ''; //collect search query
 
   try {
@@ -587,110 +601,109 @@ function cleanArtist(artist) {
 }
 
 app.get('/analysis', async (req, res) => {
+  if (!req.session.user) {
+      return res.redirect('/login');
+  }
+
   const inNav = true;
-  const { title, artist, albumCover} = req.query;
+  const { title, artist, albumCover } = req.query;
   console.log("Query Parameters:", req.query);
   if (!title || !artist) {
-    return res.status(400).send('Song title and artist are required');
+      return res.status(400).send('Song title and artist are required');
   }
   const cleanedTitle = cleanTitle(decodeURIComponent(title));
   const cleanedArtist = cleanArtist(decodeURIComponent(artist));
- const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(cleanedArtist)}/${encodeURIComponent(cleanedTitle)}`;
-  const prompt = `Conclude your analysis in a complete sentence in 180 tokens or less. This is a section of the lyrics from "${title}" by "${artist}". Do NOT mention the song or the album in the first sentence of the paragraph. Give me interesting information about this section of the lyrics:  It could be analysis of the meaning, it could be historical context or context to the artist, it could be analysis of the literary devices used, it could be an anecdote behind the lyrics, or it could be what/who the lyrics were inspired by... Just make it interesting. However, if the section is brief or if it is just ad libs, then keep your analysis in 17 words or less. ONLY talk about this section of lyrics.`;
+  const apiUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(cleanedArtist)}/${encodeURIComponent(cleanedTitle)}`;
+  const prompt = `Conclude your analysis in a complete sentence in 180 tokens or less. This is a section of the lyrics from "${title}" by "${artist}". Do NOT mention the song or the album in the first sentence of the paragraph. Be creative with your opening line. Give me interesting information about this section of the lyrics: It could be analysis of the meaning, it could be historical context or context to the artist, it could be analysis of the literary devices used, it could be an anecdote behind the lyrics, or it could be what/who the lyrics were inspired by... Just make it interesting. However, if the section is brief or if it is just ad libs, then keep your analysis in 17 words or less. ONLY talk about this section of lyrics.`;
   console.log(`Song: "${title}" by "${artist}"`);
 
   try {
-    //gets dominant color for album
-    const dominantColor = await getDominantColor(albumCover);
-    console.log('Dominant Color:', dominantColor);
+      const dominantColor = await getDominantColor(albumCover);
+      console.log('Dominant Color:', dominantColor);
 
-    const lyricsResponse = await fetch(apiUrl);
-    if (!lyricsResponse.ok) throw new Error(`Lyrics fetch failed: ${lyricsResponse.statusText}`);
-    
-    const lyricsData = await lyricsResponse.json();
-    if (!lyricsData.lyrics) throw new Error("Lyrics not found.");
+      const lyricsResponse = await fetch(apiUrl);
+      if (!lyricsResponse.ok) throw new Error(`Lyrics fetch failed: ${lyricsResponse.statusText}`);
 
-    const cleanedLyrics = cleanLyrics(lyricsData.lyrics, title, artist);
-    // Split the cleaned lyrics into an array of lines/chunks
-    // Previously: const lyricsChunks = cleanedLyrics.split('\n').filter(line => line.trim() !== '');
-    // Now split by paragraphs instead of single line breaks
-    const lyricsParagraphs = cleanedLyrics.split('\n\n').filter(paragraph => paragraph.trim() !== '');
+      const lyricsData = await lyricsResponse.json();
+      if (!lyricsData.lyrics) throw new Error("Lyrics not found.");
 
-    // Initialize an array to hold the analysis results
-    const analysisResults = [];
+      const cleanedLyrics = cleanLyrics(lyricsData.lyrics, title, artist);
+      const lyricsParagraphs = cleanedLyrics.split('\n\n').filter(paragraph => paragraph.trim() !== '');
+      const analysisResults = [];
+      const usedFirstTwoWords = new Set();  // Set to track unique first two words
 
-    // Use Promise.all to wait for all analyses to complete
-    await Promise.all(lyricsParagraphs.map(async (paragraph, index) => {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          "model": "gpt-4-turbo", //gpt-4-0125-preview or gpt-3.5-turbo-0125
-          "messages": [
-            {
-              "role": "system",
-              "content": prompt
-            },
-            {
-              "role": "user",
-              "content": paragraph
-            }
-          ],
-          "temperature": 0.7,
-          "max_tokens": 180
-        }),
-      });
-    
-      const json = await response.json();
-      const analysis = json.choices && json.choices[0].message.content;
-      // Attach the original index to each analysis result
-      return {index, lyric: paragraph, analysis};
-    })).then(results => {
+      await Promise.all(lyricsParagraphs.map(async (paragraph, index) => {
+          let analysis;
+          let firstTwoWords;
+          do {
+              const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${apiKey}`,
+                  },
+                  body: JSON.stringify({
+                      "model": "gpt-4-turbo",
+                      "messages": [
+                          { "role": "system", "content": prompt },
+                          { "role": "user", "content": paragraph }
+                      ],
+                      "temperature": 0.7,
+                      "max_tokens": 180
+                  }),
+              });
+
+              const json = await response.json();
+              analysis = json.choices[0].message.content;
+              firstTwoWords = analysis.split(' ').slice(0, 2).join(' ');
+          } while (usedFirstTwoWords.has(firstTwoWords));  // Ensure first two words are unique
+          usedFirstTwoWords.add(firstTwoWords);
+          analysisResults.push({ index, lyric: paragraph, analysis });
+      }));
+
       // Sort the results based on the original index to maintain order
-      analysisResults.push(...results.sort((a, b) => a.index - b.index));
-    });
+      analysisResults.sort((a, b) => a.index - b.index);
 
-    let spotifyUri = '';
+      let spotifyUri = '';
       try {
-        const spotifyResponse = await spotifyApi.searchTracks(`${title} ${artist}`);
-        if (spotifyResponse.body.tracks.items.length > 0) {
-          spotifyUri = spotifyResponse.body.tracks.items[0].uri; // Get the URI of the first track
-        }
-          } catch (err) {
-            console.error('Spotify search failed:', err);
+          const spotifyResponse = await spotifyApi.searchTracks(`${title} ${artist}`);
+          if (spotifyResponse.body.tracks.items.length > 0) {
+              spotifyUri = spotifyResponse.body.tracks.items[0].uri; // Get the URI of the first track
           }
-    
-          spotifyUri = stripSpotifyUri(spotifyUri);
-    console.log(spotifyUri);
-    res.render('analysis', {
-      title: decodeURIComponent(title),
-      artist: decodeURIComponent(artist),
-      album: decodeURIComponent(req.query.album),
-      userID: req.session.userId,
-      analysisResults, // Pass the array of lyrics and analyses
-      spotifyUri,
-      albumCover,
-      dominantColor,
-      inNav
-    });
+      } catch (err) {
+          console.error('Spotify search failed:', err);
+      }
+      
+      spotifyUri = stripSpotifyUri(spotifyUri);
+      console.log(spotifyUri);
+      res.render('analysis', {
+          title: decodeURIComponent(title),
+          artist: decodeURIComponent(artist),
+          album: decodeURIComponent(req.query.album),
+          userID: req.session.userId,
+          analysisResults, // Pass the array of lyrics and analyses
+          spotifyUri,
+          albumCover,
+          dominantColor,
+          inNav
+      });
   } catch (error) {
-    console.error('Error:', error);
-    res.render('analysis', {
-      title: decodeURIComponent(title),
-      artist: decodeURIComponent(artist),
-      album: decodeURIComponent(req.query.album),
-      albumCover,
-      userID: req.session.userId,
-      error: `An error occurred: ${error.message}`,
-      analysisResults: [], // Ensure the template can handle an empty array
-      dominantColor,
-      inNav
-    });
+      console.error('Error:', error);
+      res.render('analysis', {
+          title: decodeURIComponent(title),
+          artist: decodeURIComponent(artist),
+          album: decodeURIComponent(req.query.album),
+          albumCover,
+          userID: req.session.userId,
+          error: `An error occurred: ${error.message}`,
+          analysisResults: [], // Ensure the template can handle an empty array
+          dominantColor,
+          inNav
+      });
   }
 });
+
+
 
 function cleanLyrics(lyrics, title, artist) {
   // Define the prefix pattern to remove
@@ -729,6 +742,11 @@ spotifyApi.clientCredentialsGrant().then(data => {
 
 // Route to serve the background page
 app.get('/background', async (req, res) => {
+
+  if (!req.session.user) {
+    return res.redirect('/login');
+  }
+
   const { title, artist, album, albumCover} = req.query;
   const inNav = true;
 
@@ -738,7 +756,7 @@ app.get('/background', async (req, res) => {
   // Prepare the titles and prompts for each section to be analyzed by GPT-3
   const sectionsInfo = [
     { title: "Introduction", description: "Provide a brief overview of the song and its context and significance to the legacy in the artist's career or music history." },
-    { title: "Songwriting/Inspiration, Composition, Recording", description: "Discuss the songwriting process, musical composition, studio sessions, and production details.  Include any technical details known about equipment used.  Report on any studio anecdotes there may be.  Dive as deep as possible into these topics. Do NOT start the paragraph with an introduction about the song title, artist, and album, because we already know what the song is." },
+    { title: "Songwriting/Inspiration, Composition, Recording", description: "Discuss the songwriting process, musical composition, studio sessions, and production details.  Include technical details known about all the equipment used.  Report on any studio anecdotes there may be.  Dive as deep as possible into these topics. Do NOT start the paragraph with an introduction about the song title, artist, and album, because we already know what the song is." },
     { title: "Historical Context", description: "Explain its era, relevant social, political, or cultural events at the time of its creation, and its influence on the song. Do NOT start the paragraph with an introduction about the song title, artist, and album, because we already know what the song is." },
     { title: "Personal Anecdotes and Stories", description: "Share insights from the stories surrounding the artist from the artist themselves or from people who knew them if there are any. Talk about stories from fans if there are any.  Do NOT talk about anything other than anecdotes. Do NOT start the paragraph with an introduction about the song title, artist, and album, because we already know what the song is." },
     { title: "Reception and Impact", description: "Describe its initial reception, long-term legacy, and influence on musical trends or genres. Do NOT start the paragraph with an introduction about the song title, artist, and album, because we already know what the song is." },
@@ -759,7 +777,8 @@ app.get('/background', async (req, res) => {
     const gptPromises = sectionsInfo.map(sectionInfo => {
       const messages = [{
         "role": "system",
-        "content": `I am writing information about the song "${cleanedTitle}" by "${cleanedArtist}". I must only write about factual information.  I must write the most interesting information I can find.  I must not organize the information into sections.`
+        "content": `I am writing information about the song "${cleanedTitle}" by "${cleanedArtist}". I must only write about factual information. I must write the most interesting information I can find.  I must not organize the information into sections.  If the song was made after april 2023 or I don't have it in my training data, I must only reply with 'No information available'.`
+
       }, {
         "role": "user",
         "content": `${sectionInfo.description}`
@@ -774,7 +793,7 @@ app.get('/background', async (req, res) => {
         body: JSON.stringify({
           model: "gpt-4-turbo", //gpt-4-0125-preview or gpt-3.5-turbo-0125
           messages,
-          temperature: 0.5,
+          temperature: 0.7,
           max_tokens: 1200
         }),
       })
@@ -860,6 +879,9 @@ app.post('/save-background', async (req, res) => {
 });
 
 app.get('/account_analyses', async (req, res) => {
+  if (!req.session.user) {
+    return res.redirect('/login');
+  }
   try{
     const userID = req.session.userId;
     console.log("User ID:", userID);

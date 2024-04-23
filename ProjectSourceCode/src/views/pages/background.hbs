@@ -24,6 +24,10 @@
                     <h3>Release Date: </h3> <h4>{{credits.releaseDate}}</h4>
                 </div>
             {{/if}}
+
+        <button id="saveBackgroundButton" onclick="saveBackground()">
+            <img src="img/save.png" alt="Save Background"/>
+        </button>
         </div>
     </div>
     <div id="title">
@@ -35,7 +39,6 @@
         <img src="{{albumCover}}" alt="Album Cover" style="width: 300px;">
     </div>
 </div>
-<button class = "btn btn-dark mt-3 success" id="saveBackgroundButton" onclick="saveBackground()">Save Background</button>
 <button class="btn btn-dark mt-3" id="viewSavedBackgroundButton">View Saved Background</button>
 <div id="background-analysis">
     {{#each backgroundResults}}
@@ -113,6 +116,18 @@
         justify-content: center;
         align-items: center;
     }
+
+    #saveBackgroundButton{
+        border: none;
+        background: none;
+        cursor: pointer;
+        margin-top: 2rem;
+  }
+
+   #saveBackgroundButton img {
+        width: 40px; /* Adjust width as needed */
+        height: 40px; /* Adjust height as needed */
+  }
 
 </style>
 

@@ -11,7 +11,9 @@
         data-artist="{{artist}}" 
         data-album="{{album}}"
         data-album-cover="{{albumCover}}">Background</button>
-      <button class = "btn btn-dark mt-3 success" id="saveAnalysisButton" onclick="saveAnalysis()">Save Analysis</button>
+      <button id="saveAnalysisButton" onclick="saveAnalysis()">
+        <img src="img/save.png" alt="Save Analysis"/>
+      </button>
       <button class="btn btn-dark mt-3" id="viewSavedAnalysisButton">View Saved Analysis</button>
     </div>
     <div id="spotify-embed">
@@ -48,6 +50,19 @@
   body {
     font-family: Arial, sans-serif; /* or the font you're using */
   }
+
+    #saveAnalysisButton{
+    border: none;
+    background: none;
+    cursor: pointer;
+    margin-top: 2rem;
+  }
+
+   #saveAnalysisButton img {
+    width: 40px; /* Adjust width as needed */
+    height: 40px; /* Adjust height as needed */
+  }
+
   .btn-dark {
     background-color: #000;
     color: #fff;
