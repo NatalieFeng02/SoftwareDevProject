@@ -906,7 +906,8 @@ app.post('/save-background', async (req, res) => {
     const insertQuery = `INSERT INTO analysis(title, artist, album, "albumCover", hist_analysis, 
     user_id, "dominantColor", "spotifyUri", "credits") VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
     ON CONFLICT (title, artist, album, user_id) DO UPDATE
-    SET hist_analysis = EXCLUDED.hist_analysis;
+    SET hist_analysis = EXCLUDED.hist_analysis,
+    "credits" = COALESCE(analysis."credits", EXCLUDED."credits");
     `;
   console.log("Saving credits: ", savedCredits);
   await db.query(insertQuery, [title, artist, album, albumCover, serializedBackground, userID, dominantColor, spotifyUri, savedCredits]);
@@ -998,7 +999,7 @@ app.get('/saved-background', async (req, res) => {
       albumCover,
       dominantColor,
       spotifyUri,
-      credits: JSON.parse(credits),
+      credits,
       inNav
     });
   }
