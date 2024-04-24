@@ -940,7 +940,8 @@ app.get('/account_analyses', async (req, res) => {
 // Loads the analysis page from database
 app.get('/saved-analysis', async (req, res) => {
   const inNav = true;
-  const { title, artist, album, userID } = req.query;
+  const userID = req.session.userId;
+  const { title, artist, album} = req.query;
   console.log("Received parameters: ", req.query);
 
   if (!title || !artist || !album || !userID){
@@ -975,7 +976,8 @@ app.get('/saved-analysis', async (req, res) => {
 // Loads the background page from database
 app.get('/saved-background', async (req, res) => {
   const inNav = true;
-  const { title, artist, album, userID } = req.query;
+  const userID = req.session.userId;
+  const { title, artist, album} = req.query;
   console.log("Received parameters:", title, artist, album, userID)
 
   if (!title || !artist || !album || !userID){
