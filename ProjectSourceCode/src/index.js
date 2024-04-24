@@ -387,16 +387,16 @@ app.post("/create", async (req, res) => {
 
 
 app.get('/results', async (req, res) => {
-
   if (!req.session.user) {
     return res.redirect('/login');
   }
 
-  const searchQuery = req.query.searchQuery || ''; //collect search query
+  const userID = req.session.userId;
+  const searchQuery = req.query.searchQuery || ''; // Collect search query
 
   try {
     const accessToken = await getSpotifyAccessToken();
-    const apiUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=50`; //constructs URL for sportify search API, track limit 50
+    const apiUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=50`;
     
     const response = await fetch(apiUrl, {
       method: 'GET',
@@ -407,7 +407,7 @@ app.get('/results', async (req, res) => {
 
     const data = await response.json();
 
-      //Maps through the items in the fetched data to create an array of song data, extracting the title, artist, album name, and the URL of the largest album cover image.
+    // Maps through the items in the fetched data to create an array of song data
     let songData = data.tracks.items.map(track => ({
       title: track.name,
       artist: track.artists.map(artist => artist.name).join(', '),
@@ -418,47 +418,57 @@ app.get('/results', async (req, res) => {
       }, track.album.images[0]).url
     }));
 
-    //checking if each song has lyrics from lyrics.ovh
-    const filteredSongData = await Promise.all(songData.map(async song => {
+    // Enrich song data with analysis existence information and check for lyrics
+    const enrichedSongData = await Promise.all(songData.map(async song => {
+      const checkQuery = `SELECT def_analysis, hist_analysis FROM analysis WHERE title = $1 AND artist = $2 AND album = $3 AND user_id = $4`;
+      const checkResults = await db.oneOrNone(checkQuery, [song.title, song.artist, song.album, userID]);
+
       const cleanedTitle = cleanTitle(song.title);
       const cleanedArtist = cleanArtist(song.artist);
       const lyricsResponse = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(cleanedArtist)}/${encodeURIComponent(cleanedTitle)}`);
       
       if (lyricsResponse.ok) {
-        return { ...song, lyricsAvailable: true };
+        return {
+          ...song,
+          hasDefAnalysis: checkResults && checkResults.def_analysis !== null,
+          hasHistAnalysis: checkResults && checkResults.hist_analysis !== null,
+          lyricsAvailable: true
+        };
       }
       return null;
     }));
 
-    const songsWithLyrics = filteredSongData.filter(song => song !== null); //creates new array for songsWithLyrics
+    const songsWithLyricsAndAnalysis = enrichedSongData.filter(song => song !== null); // Filter out songs without lyrics
 
-    //pagination logic
+    // Pagination logic
     const itemsPerPage = 8;
     const page = req.query.page || 1;
-    const totalItems = songsWithLyrics.length;
+    const totalItems = songsWithLyricsAndAnalysis.length;
   
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     const startIndex = (Number(page) - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const paginatedItems = songsWithLyrics.slice(startIndex, endIndex);
+    const paginatedItems = songsWithLyricsAndAnalysis.slice(startIndex, endIndex);
   
     const pageNumbers = [];
     for (let i = 1; i <= totalPages; i++) {
       pageNumbers.push({ number: i, isCurrent: i === Number(page) });
     }
 
-    //renders results template to display on webpage
+    // Renders results template to display on webpage
     res.render('results', {
       searchQuery: searchQuery,
       searchResults: paginatedItems,
       pages: pageNumbers,
       totalPages: totalPages,
+      userID: userID
     });
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).send('Error fetching data');
   }
 });
+
 
 app.get('/results_users', async (req, res) => {
   const searchQuery = req.query.searchQuery || ''; // Collect search query
@@ -830,6 +840,41 @@ app.get('/background', async (req, res) => {
   }
 });
 
+app.get('/check-analysis', async (req, res) => {
+  const { title, artist, album, user_id } = req.query;
+
+  const query = 
+      `SELECT def_analysis, hist_analysis FROM analysis
+      WHERE title = $1 AND artist = $2 AND album = $3 AND user_id = $4;`
+  ;
+
+  try {
+      const result = await db.oneOrNone(query, [decodeURIComponent(title), decodeURIComponent(artist), decodeURIComponent(album), user_id]);
+      if (result) {
+          const response = {
+              exists: false
+          };
+
+          if (result.def_analysis) {
+              response.exists = true;
+              response.viewAnalysisUrl = `/saved-analysis?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(album)}&userID=${user_id}`;
+          }
+
+          if (result.hist_analysis) {
+              response.exists = true;
+              response.viewBackgroundUrl = `/saved-background?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(album)}&userID=${user_id}`;
+          }
+
+          res.json(response);
+      } else {
+          res.json({ exists: false });
+      }
+  } catch (error) {
+      console.error('Error accessing the database:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Client sends information from analysis page to database
 app.post('/save-analysis', async (req, res) => {
   const {title, artist, album, albumCover, analysisResults, userID, dominantColor, spotifyUri} = req.body;
@@ -861,7 +906,8 @@ app.post('/save-background', async (req, res) => {
     const insertQuery = `INSERT INTO analysis(title, artist, album, "albumCover", hist_analysis, 
     user_id, "dominantColor", "spotifyUri", "credits") VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
     ON CONFLICT (title, artist, album, user_id) DO UPDATE
-    SET hist_analysis = EXCLUDED.hist_analysis;
+    SET hist_analysis = EXCLUDED.hist_analysis,
+    "credits" = COALESCE(analysis."credits", EXCLUDED."credits");
     `;
   console.log("Saving credits: ", savedCredits);
   await db.query(insertQuery, [title, artist, album, albumCover, serializedBackground, userID, dominantColor, spotifyUri, savedCredits]);
@@ -880,7 +926,7 @@ app.get('/account_analyses', async (req, res) => {
     const userID = req.session.userId;
 
     console.log("User ID:", userID);
-    const query = 'SELECT title, artist, album, "albumCover" FROM analysis WHERE user_id = $1';
+    const query = 'SELECT title, artist, album, "albumCover", def_analysis, hist_analysis FROM analysis WHERE user_id = $1';
     const analysisResults = await db.query(query, [userID]);
     console.log(analysisResults)
     res.render('account_analyses', {analysisResults, userID: userID});
@@ -889,12 +935,13 @@ app.get('/account_analyses', async (req, res) => {
     console.error('Error fetching saved artists', error);
     res.status(500).send('Server error');
   }
-})
+});
 
 // Loads the analysis page from database
 app.get('/saved-analysis', async (req, res) => {
   const inNav = true;
-  const { title, artist, album, userID } = req.query;
+  const userID = req.session.userId;
+  const { title, artist, album} = req.query;
   console.log("Received parameters: ", req.query);
 
   if (!title || !artist || !album || !userID){
@@ -929,7 +976,8 @@ app.get('/saved-analysis', async (req, res) => {
 // Loads the background page from database
 app.get('/saved-background', async (req, res) => {
   const inNav = true;
-  const { title, artist, album, userID } = req.query;
+  const userID = req.session.userId;
+  const { title, artist, album} = req.query;
   console.log("Received parameters:", title, artist, album, userID)
 
   if (!title || !artist || !album || !userID){
@@ -953,7 +1001,7 @@ app.get('/saved-background', async (req, res) => {
       albumCover,
       dominantColor,
       spotifyUri,
-      credits: JSON.parse(credits),
+      credits,
       inNav
     });
   }

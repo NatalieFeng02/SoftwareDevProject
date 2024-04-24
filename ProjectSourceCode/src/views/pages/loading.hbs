@@ -1,91 +1,150 @@
-<main>
-    <svg class="ip" viewBox="0 0 256 128" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="white" />
-                <stop offset="100%" stop-color="white" />
-            </linearGradient>
-            <linearGradient id="grad2" x1="1" y1="0" x2="0" y2="0">
-                <stop offset="0%" stop-color="white" />
-                <stop offset="100%" stop-color="white" />
-            </linearGradient>
-        </defs>
-        <g fill="none" stroke-linecap="round" stroke-width="16">
-            <g class="ip__track" stroke="white">
-                <path d="M8,64s0-56,60-56,60,112,120,112,60-56,60-56"/>
-                <path d="M248,64s0-56-60-56-60,112-120,112S8,64,8,64"/>
-            </g>
-            <g stroke-dasharray="180 656">
+    <main>
+        <svg class="ip" viewBox="0 0 256 128" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="{{dominantColor}}" />
+                    <stop offset="100%" stop-color="{{dominantColor}}" />
+                </linearGradient>
+                <linearGradient id="grad2" x1="1" y1="0" x2="0" y2="0">
+                    <stop offset="0%" stop-color="{{dominantColor}}" />
+                    <stop offset="100%" stop-color="{{dominantColor}}" />
+                </linearGradient>
+            </defs>
+            <g fill="none">
+                <path class="ip__track" stroke="grey" d="M8,64s0-56,60-56,60,112,120,112,60-56,60-56"/>
+                <path class="ip__track" stroke="grey" d="M248,64s0-56-60-56-60,112-120,112S8,64,8,64"/>
                 <path class="ip__worm1" stroke="url(#grad1)" stroke-dashoffset="0" d="M8,64s0-56,60-56,60,112,120,112,60-56,60-56"/>
                 <path class="ip__worm2" stroke="url(#grad2)" stroke-dashoffset="358" d="M248,64s0-56-60-56-60,112-120,112S8,64,8,64"/>
             </g>
-        </g>
-    </svg>
-</main>
+        </svg>
+    </main>
+    <div id="phraseDisplay"></div>
+    
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-body, html {
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #141414 /* Ensuring the body fills the entire screen */
-}
-main {
-    display: flex; /* This makes it easier to center the content of main */
-    justify-content: center; /* Center horizontally inside the main */
-    align-items: center; /* Center vertically inside the main */
-    width: 100%; /* Ensures main element stretches across the viewport width */
-    height: 100vh; /* Matches the viewport height */
-}
-.ip {
-    width: 16em;
-    height: 8em;
-}
-.ip__track {
-    stroke: grey; /* Infinity sign background to grey */
-}
-.ip__worm1, .ip__worm2 {
-    stroke: {{dominantColor}}; /* Infinity animation to white */
-    animation: worm1 2s linear infinite;
-}
-.ip__worm2 {
-    animation-name: worm2;
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #141414; /* Dark background for the loading page */
+        }
+        main {
+            position: fixed; /* Fixed position to keep the SVG centered at all times */
+            top: 50%; /* Center vertically */
+            left: 50%; /* Center horizontally */
+            transform: translate(-50%, -50%); /* Adjust the exact center of the element */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .ip {
+            width: 16em; /* Fixed width for SVG */
+            height: 8em; /* Fixed height for SVG */
+        }
+        .ip__track, .ip__worm1, .ip__worm2 {
+            stroke-linecap: round;
+            stroke-width: 16;
+        }
+        .ip__track {
+            stroke: grey; /* Grey color for the inactive part of the infinity symbol */
+        }
+        .ip__worm1, .ip__worm2 {
+            stroke-dasharray: 180 656;
+            animation: worm1 2s linear infinite;
+        }
+        .ip__worm2 {
+            animation-name: worm2; /* Different animation to maintain complementary movement */
+        }
 
-@keyframes worm1 {
-    from { stroke-dashoffset: 0; }
-    50% { animation-timing-function: steps(1); stroke-dashoffset: -358; }
-    50.01% { animation-timing-function: linear; stroke-dashoffset: 358; }
-    to { stroke-dashoffset: 0; }
-}
-@keyframes worm2 {
-    from { stroke-dashoffset: 358; }
-    50% { stroke-dashoffset: 0; }
-    to { stroke-dashoffset: -358; }
-}
-</style>
+        @font-face {
+            font-family: 'Zekton';
+            src: url('fonts/zekton.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        #phraseDisplay {
+            position: absolute; /* Does not disrupt the layout */
+            top: 80%; /* Positioned below the animation */
+            width: 100%; /* Full width to center text */
+            text-align: center; /* Center text horizontally */
+            color: white; /* Text color */
+            font-size: 1.2em; /* Font size for visibility */
+            font-family: 'zekton', sans-serif;
+            opacity: 0; /* Start invisible */
+            transition: opacity 1s; /* Smooth transition for opacity changes */
+            margin: 40px;
+        }
+        @keyframes worm1 {
+            from { stroke-dashoffset: 0; }
+            50% { animation-timing-function: steps(1); stroke-dashoffset: -358; }
+            50.01% { animation-timing-function: linear; stroke-dashoffset: 358; }
+            to { stroke-dashoffset: 0; }
+        }
+        @keyframes worm2 {
+            from { stroke-dashoffset: 358; }
+            50% { stroke-dashoffset: 0; }
+            to { stroke-dashoffset: -358; }
+        }
+    </style>
 
 
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const dominantColor = "{{dominantColor}}"; // Ensure this value is passed from the server
-    // Set the gradient stop colors
-    document.querySelectorAll('stop').forEach(stop => {
-      stop.setAttribute('stop-color', dominantColor);
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dominantColor = "{{dominantColor}}"; // Ensure this value is passed from the server
+        document.querySelectorAll('stop').forEach(stop => {
+            stop.setAttribute('stop-color', dominantColor);
+        });
+
+        console.log('Redirecting to:', "{{{redirectUrl}}}");
+        setTimeout(() => {
+            window.location.href = "{{{redirectUrl}}}";
+        }, 1000); // Redirect after a short loading period
+
+        const isAnalysisRedirect = "{{{redirectUrl}}}".includes('analysis');
+        const analysisLoadingQueue = [
+            "Finding meaning…", "Analyzing literary devices…", "Fetching historical context…",
+            "Collecting sources of inspiration…", "Finding anecdotes…", "Digging for metaphors…",
+            "Inspecting rhetoric…", "Evaluating imagery…", "Investigating rhyme schemes…"
+        ];
+        const backgroundLoadingQueue = [
+            "Constructing brief overview and legacy…", "Fetching songwriting process…",
+            "Collecting production details…", "Gathering studio anecdotes…", "Perceiving historical context…",
+            "Aggregating critical reception…", "Finding interesting anecdotes…",
+            "Highlighting notable performances and versions…", "Searching for controversies…"
+        ];
+        const phrases = isAnalysisRedirect ? analysisLoadingQueue : backgroundLoadingQueue;
+
+        let currentIndex = 0;
+        const phraseDisplay = document.getElementById('phraseDisplay');
+
+        function updatePhrase() {
+            phraseDisplay.style.opacity = 0; // Fade out the current phrase
+            setTimeout(() => {
+                phraseDisplay.textContent = ''; // Clear text when invisible
+                setTimeout(() => {
+                    currentIndex = (currentIndex + 1) % phrases.length; // Cycle through phrases
+                    phraseDisplay.textContent = phrases[currentIndex]; // Set the new phrase
+                    phraseDisplay.style.opacity = 1; // Fade in the new phrase
+                    setTimeout(() => {
+                        phraseDisplay.style.opacity = 0; // Prepare to fade out after being visible
+                    }, 2000); // Phrase visible for 2 seconds
+                }, 1000); // Invisible for 1 second before showing new phrase
+            }, 1000); // Fade-out duration
+        }
+
+        setInterval(updatePhrase, 5000); // Change phrase every 5 seconds
+
+        updatePhrase(); // Display first phrase immediately on load
     });
+    </script>
 
-    console.log('Redirecting to:', "{{{redirectUrl}}}");
-    setTimeout(() => {
-      window.location.href = "{{{redirectUrl}}}";
-    }, 1000); // Adjust timing as needed
-  });
-</script>
 
 
 
