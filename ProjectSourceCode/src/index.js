@@ -963,93 +963,6 @@ app.get('/saved-background', async (req, res) => {
 }
 });
 
-//update username and email
-app.post('/accountinformation', async (req, res) => {
-  if (!req.session.user) {
-    return res.redirect('/login');
-  }
-
-  const { newUsername, newEmail } = req.body;
-
-  try {
-    // Update the user's information in the session
-    req.session.user.username = newUsername;
-    req.session.user.email = newEmail;
-
-    // Check if the new username already exists
-    const existingUser = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [newUsername]);
-    if (existingUser) {
-      return res.status(400).json({
-        message: "Username already exists. Please choose a different username.",
-      });
-    }
-
-    // Update the user's information in the database
-    const updateQuery = 'UPDATE users SET username = $1, email = $2 WHERE id = $3';
-    const userId = req.session.user.id;
-
-    await db.none(updateQuery, [newUsername, newEmail, userId]);
-
-    console.log('User information updated successfully');
-
-    // Redirect the user back to the account information page
-    res.redirect('/accountinformation');
-  } catch (error) {
-    console.error('Error updating user information:', error);
-    res.status(500).send('Error updating user information');
-  }
-});
-//update password
-app.post('/accountinformation', async (req, res) => {
-  try {
-    if (!req.session.user) {
-      return res.redirect('/login');
-    }
-
-    const { newUsername, newEmail, currentPassword, newPassword, confirmNewPassword } = req.body;
-
-    // Input validation
-    if (!newUsername || !newEmail || !currentPassword || !newPassword || !confirmNewPassword) {
-      return res.status(400).json({
-        message: "All fields are required.",
-      });
-    }
-
-    // Check if the new password and confirm new password match
-    if (newPassword !== confirmNewPassword) {
-      return res.status(400).json({
-        message: "New password and confirm new password do not match.",
-      });
-    }
-
-    // Retrieve user from the database
-    const user = await db.oneOrNone("SELECT * FROM users WHERE id = $1", [req.session.user.id]);
-    if (!user || !bcrypt.compareSync(currentPassword, user.password)) {
-      return res.status(400).json({
-        message: "Current password is incorrect.",
-      });
-    }
-
-    // Hash the new password
-    const hashedPassword = bcrypt.hashSync(newPassword, 10);
-
-    // Update user information in the session
-    req.session.user.username = newUsername;
-    req.session.user.email = newEmail;
-
-    // Update user information in the database
-    await db.none('UPDATE users SET username = $1, email = $2, password = $3 WHERE id = $4', [newUsername, newEmail, hashedPassword, req.session.user.id]);
-
-    console.log('User information updated successfully');
-
-    // Redirect the user back to the account information page
-    res.redirect('/accountinformation');
-  } catch (error) {
-    console.error('Error updating user information:', error);
-    res.status(500).send('Error updating user information');
-  }
-});
-
 
 
 async function fetchSpotifyAlbumCovers(cleanedTitle, cleanedArtist) {
@@ -1249,27 +1162,81 @@ app.get('/accountinformation', (req, res) => {
   const { username, email } = req.session.user;
   res.render('accountinformation', { username, email });
 });
-
+//update username and email
 app.post('/accountinformation', async (req, res) => {
   if (!req.session.user) {
     return res.redirect('/login');
   }
-
-  const { newUsername, newEmail } = req.body;
-  const userId = req.session.user.id; 
+  const {newUsername, newEmail, currentPassword, newPassword, confirmNewPassword } = req.body;
+  // const { newUsername, newEmail } = req.body;
 
   try {
-    req.session.user.username = newUsername;
-    req.session.user.email = newEmail;
+    // Update the username in the session
+    if(newUsername){
+      req.session.user.username = newUsername;
+      const existingUser = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [newUsername]);
+      if (existingUser) {
+        return res.status(400).json({
+          message: "Username already exists. Please choose a different username.",
+        });
+      }
+      else{
+        const updateQueryUsername = 'UPDATE users SET username = $1 WHERE id = $2';
+        const userId = req.session.user.id;
+        await db.none(updateQueryUsername, [newUsername, userId]);
+      }
+    }
+    if(newEmail){
+      req.session.user.email = newEmail;
+      const updateQueryEmail = 'UPDATE users SET email = $1 WHERE id = $2';
+      const userId = req.session.user.id;
+      await db.none(updateQueryEmail, [newEmail, userId]);
 
-    await db.any('UPDATE users SET username = $1, email = $2 WHERE id = $3', [newUsername, newEmail, userId]);
+    }
+    if(newPassword){
+      // Check if the new password and confirm new password match
+      if (newPassword !== confirmNewPassword) {
+        return res.status(400).json({
+          message: "New password and confirm new password do not match.",
+        });
+      }
+      // Retrieve user from the database
+      const user = await db.oneOrNone("SELECT * FROM users WHERE id = $1", [req.session.user.id]);
+      if (!user || !bcrypt.compareSync(currentPassword, user.password)) {
+        return res.status(400).json({
+          message: "Current password is incorrect.",
+        });
+      }
+      else{
+        // Hash the new password
+      const hashedPassword = bcrypt.hashSync(newPassword, 10);
 
-    // res.redirect('/accountinformation');
+      // Update user information in the session
+      req.session.user.username = newUsername;
+      req.session.user.email = newEmail;
+
+      // Update user information in the database
+      await db.none('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, req.session.user.id]);
+      }
+      return res.redirect('logout')
+    }
+    console.log('User information updated successfully');
+
+    // Input validation
+    // if (!currentPassword || !newPassword || !confirmNewPassword) {
+    //   return res.status(400).json({
+    //     message: "All fields are required.",
+    //   });
+    // }
+
+    // Redirect the user back to the account information page
+    res.redirect('/accountinformation');
   } catch (error) {
     console.error('Error updating user information:', error);
-    res.status(500).send('Internal Server Error');
+    res.status(500).send('Error updating user information');
   }
 });
+
 
 
 // Handle 404 errors
