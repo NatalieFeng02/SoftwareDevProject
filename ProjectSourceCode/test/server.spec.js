@@ -40,7 +40,7 @@ describe('Server!', () => {
 // and expects the API to return a status of 200 along with the "Success" message.
 
 
-describe('Testing register and preexisting username', () => {
+describe('positive : Testing register and preexisting username', () => {
 
     before(done => {
       chai
@@ -92,6 +92,20 @@ describe('Testing register and preexisting username', () => {
         });
     });
   });
+
+  describe('Testing unauthorized access', () => {
+    it('negative: redirects user when not logged in', done => {
+      chai.request(server)
+        .get('/results')
+        .end((err, res) => {
+          expect(res).to.redirect; 
+          expect(res).to.redirectTo(/\/login$/); 
+          expect(res).to.have.status(200); 
+          done();
+        });
+    });
+  });
+  
 /*
   describe('Nonexistent Page', () => {
     it('negative: nonexistent page should throw a 404 error', done => {
