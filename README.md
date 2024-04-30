@@ -14,7 +14,7 @@ How to run:
   Simply do docker compose up --build and start the docker containers. After this enter http://localhost:3000/ into your search bar the website will begin working. After session is complete make sure to do docker compose down -v to close docker out. 
 
 Tests:
-  These tests check some basic functionalities of the app. This automatically runs after launching docker, but may need to be launched a second time as the database needs to initialize. This tests the account registration, checking that a user already exists, page rendering, and whether or not it handles 404s correctly
+  These tests check some basic functionalities of the app. This automatically runs after launching docker, but may need to be launched a second time as the database needs to initialize. This tests the account registration, checking that a user already exists, page rendering, and whether or not an unauthorized user (Not logged in) can access the search/results page.
   
 Link:
    http://localhost:3000/ 
